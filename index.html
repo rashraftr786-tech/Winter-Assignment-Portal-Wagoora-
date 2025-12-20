@@ -3,172 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winter Assignment Portal v2.0</title>
+    <title>Global Winter Portal | Super Admin Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hidden-section { display: none; }
+        .active-tab { border-bottom: 3px solid #4f46e5; color: #4f46e5; }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-100 font-sans">
 
-    <nav class="bg-slate-900 text-white p-4 shadow-2xl flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-500 p-2 rounded-lg"><i class="fas fa-snowflake text-white"></i></div>
-            <h1 class="font-black tracking-tighter text-xl">WAGOORA PORTAL</h1>
+    <nav class="bg-slate-900 text-white p-4 shadow-xl sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-shield-alt text-yellow-400"></i>
+            <h1 class="font-black text-xl tracking-tight">WAGOORA <span class="text-blue-400">PRO</span></h1>
         </div>
-        <div id="user-nav" class="hidden flex items-center gap-6">
-            <div class="flex gap-4 items-center">
-                <span class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-sm font-bold">💰 <span id="coin-stat">0</span></span>
-                <span id="trophy-stat" class="text-xl"></span>
+        <div id="nav-actions" class="hidden flex items-center gap-6">
+            <div class="text-right">
+                <p id="user-display-name" class="text-sm font-bold leading-none"></p>
+                <p id="user-display-school" class="text-[10px] text-gray-400 uppercase tracking-tighter"></p>
             </div>
-            <button onclick="logout()" class="text-gray-400 hover:text-white transition"><i class="fas fa-sign-out-alt"></i></button>
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition"><i class="fas fa-power-off"></i></button>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 lg:p-8">
+    <div class="container mx-auto p-4 max-w-7xl">
         
-        <div id="auth-box" class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden mt-12">
-            <div class="bg-blue-600 p-6 text-center text-white">
-                <h2 class="text-2xl font-bold">Secure Access</h2>
-                <p class="text-blue-100 text-sm">Join the Winter Learning Challenge</p>
+        <section id="auth-gate" class="max-w-md mx-auto mt-12 bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-indigo-600 p-8 text-center text-white">
+                <h2 class="text-2xl font-bold">Portal Entry</h2>
+                <p class="text-indigo-200 text-sm">Select your access level</p>
             </div>
-            <div class="p-8 space-y-4">
-                <input type="text" id="reg-name" placeholder="Full Name" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="email" id="reg-email" placeholder="School Email" class="w-full p-4 border rounded-xl">
-                <select id="reg-class" class="w-full p-4 border rounded-xl">
-                    <option value="">Select Class</option>
-                    <option>Class 8th</option>
-                    <option>Class 9th</option>
-                    <option>Class 10th</option>
-                </select>
-                <select id="reg-role" class="w-full p-4 border rounded-xl font-bold text-blue-600">
-                    <option value="student">I am a Student</option>
-                    <option value="teacher">I am a Teacher</option>
-                    <option value="admin">I am an Administrator</option>
-                </select>
-                <button onclick="registerUser()" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Create Secure Account</button>
-            </div>
-        </div>
-
-        <div id="dashboard" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
             
-            <aside class="space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">📚 My Subjects</h3>
-                    <ul class="space-y-3 text-gray-600 font-medium">
-                        <li class="hover:text-blue-600 cursor-pointer"><i class="fas fa-flask mr-2 text-blue-400"></i> Science</li>
-                        <li class="hover:text-blue-600 cursor-pointer"><i class="fas fa-calculator mr-2 text-green-400"></i> Mathematics</li>
-                        <li class="hover:text-blue-600 cursor-pointer"><i class="fas fa-book mr-2 text-red-400"></i> English</li>
-                    </ul>
-                </div>
-                <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                    <h3 class="font-bold text-blue-800 mb-2">Winter Syllabus</h3>
-                    <p class="text-xs text-blue-600 mb-4">Download your winter break curriculum PDF.</p>
-                    <button class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm"><i class="fas fa-download mr-2"></i> Download PDF</button>
-                </div>
-            </aside>
-
-            <main class="lg:col-span-2 space-y-6">
-                <div id="teacher-tools" class="hidden bg-white p-6 rounded-2xl border-2 border-dashed border-blue-300">
-                    <h2 class="font-bold text-lg mb-4 text-blue-700">📤 Teacher's Upload Panel</h2>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <input type="text" placeholder="Quiz Title" class="p-3 border rounded-lg">
-                        <input type="number" placeholder="Coins Reward" class="p-3 border rounded-lg">
-                    </div>
-                    <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">Publish Assignment</button>
+            <div class="p-8 space-y-4">
+                <select id="login-role" class="w-full p-4 border-2 border-slate-100 rounded-xl outline-none focus:border-indigo-500 transition" onchange="toggleSchoolField()">
+                    <option value="student">Student Login</option>
+                    <option value="teacher">Teacher Login</option>
+                    <option value="hoi">HOI (School Head)</option>
+                    <option value="superadmin">Super Admin (System)</option>
+                </select>
+                
+                <input type="text" id="user-id" placeholder="Username / ID" class="w-full p-4 border-2 border-slate-100 rounded-xl">
+                
+                <div id="school-select-container">
+                    <select id="user-school" class="w-full p-4 border-2 border-slate-100 rounded-xl">
+                        <option value="Global">Select School</option>
+                        <option value="Govt High School Wagoora">Govt High School Wagoora</option>
+                        <option value="Model Academy">Model Academy</option>
+                    </select>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-sm">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-widest text-blue-500">Active Quiz</span>
-                            <h2 class="text-2xl font-black text-gray-800">Mathematics Quiz #1</h2>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xl font-bold text-yellow-600">500 💰</span>
-                        </div>
-                    </div>
-                    <div id="quiz-ui" class="bg-gray-50 p-6 rounded-xl border border-gray-100 mb-6">
-                        <p class="text-lg font-medium text-gray-700 mb-4">What is the value of Pi ($\pi$) to two decimal places?</p>
-                        <div class="grid grid-cols-1 gap-3">
-                            <button onclick="answer(true)" class="p-4 bg-white border-2 border-gray-100 hover:border-blue-500 rounded-xl text-left transition">3.14</button>
-                            <button onclick="answer(false)" class="p-4 bg-white border-2 border-gray-100 hover:border-blue-500 rounded-xl text-left transition">2.14</button>
-                        </div>
-                    </div>
-                </div>
-            </main>
+                <input type="password" id="user-pass" placeholder="Password" class="w-full p-4 border-2 border-slate-100 rounded-xl">
+                
+                <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-4 rounded-xl shadow-lg transition transform active:scale-95">
+                    Verify & Enter
+                </button>
+            </div>
+        </section>
 
-            <aside class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 class="font-black text-gray-800 mb-6 flex items-center gap-2">
-                    <i class="fas fa-trophy text-yellow-500"></i> LEADERBOARD
-                </h3>
-                <div id="leaderboard-list" class="space-y-4">
-                    <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-xl border border-yellow-100">
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold text-yellow-700">1st</span>
-                            <span class="font-medium">Suhail Ahmad</span>
-                        </div>
-                        <span class="font-bold">🥇 2.5k</span>
+        <section id="superadmin-panel" class="hidden-section space-y-6">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <h2 class="text-3xl font-black text-slate-800 mb-6">System Command Center</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-blue-600 text-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="font-bold">Total Schools</h3>
+                        <p class="text-4xl font-black">24</p>
+                        <button class="mt-4 text-xs bg-blue-500 p-2 rounded">Register New School</button>
                     </div>
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold text-gray-400">2nd</span>
-                            <span class="font-medium">Zoya Khan</span>
-                        </div>
-                        <span class="font-bold text-gray-500">🥈 1.8k</span>
+                    <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="font-bold">Pending HOI Approvals</h3>
+                        <p class="text-4xl font-black">3</p>
+                        <button class="mt-4 text-xs bg-slate-700 p-2 rounded">Review Requests</button>
+                    </div>
+                    <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="font-bold">System Maintenance</h3>
+                        <p class="text-sm opacity-80">All systems operational.</p>
+                        <button class="mt-4 text-xs bg-indigo-500 p-2 rounded">Reset Global Password</button>
                     </div>
                 </div>
-            </aside>
-        </div>
+            </div>
+        </section>
+
+        <section id="hoi-panel" class="hidden-section space-y-6">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">School Control: <span id="hoi-school-title" class="text-indigo-600"></span></h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-slate-500 uppercase text-xs tracking-widest">Faculty Management</h3>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Teacher Name" class="flex-1 p-2 border rounded">
+                            <button class="bg-indigo-600 text-white px-4 rounded text-sm">Add Teacher</button>
+                        </div>
+                        <div class="border rounded-xl p-4 bg-slate-50">
+                            <p class="text-sm font-bold">Active Syllabus: <span class="text-green-600">Winter 2025 v1.2</span></p>
+                            <button class="text-indigo-600 text-xs underline mt-2">Update School Syllabus</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl">
+                        <h3 class="font-bold mb-4 italic">School Leaderboard</h3>
+                        <div class="space-y-2 text-sm" id="school-rankings">
+                            <p class="flex justify-between"><span>1. Student X</span> <span>🥇 45 Coins</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="student-panel" class="hidden-section max-w-4xl mx-auto">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl border border-slate-100">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black">Science Quiz: Photosynthesis</h2>
+                        <p class="text-slate-400 text-sm">Class: 8th | Subject: Biology</p>
+                    </div>
+                    <div class="text-right">
+                        <div id="attempts-left" class="bg-orange-100 text-orange-700 px-4 py-1 rounded-full text-xs font-bold mb-2">Attempt: 1/3</div>
+                        <div class="text-2xl font-black text-indigo-600">💰 <span id="coin-balance">0</span></div>
+                    </div>
+                </div>
+
+                <div id="quiz-container" class="space-y-4">
+                    <div class="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100">
+                        <p class="text-lg font-bold mb-6 text-slate-700">Which pigment is responsible for the green color in plants?</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button onclick="checkAnswer(0)" class="option-btn p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition text-left">A) Hemoglobin</button>
+                            <button onclick="checkAnswer(1)" class="option-btn p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition text-left">B) Chlorophyll</button>
+                            <button onclick="checkAnswer(2)" class="option-btn p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition text-left">C) Melanin</button>
+                            <button onclick="checkAnswer(3)" class="option-btn p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition text-left">D) Anthocyanin</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <script>
-        // CORE SYSTEM LOGIC
-        let state = {
-            user: null,
+        let session = {
+            user: "",
+            role: "",
+            school: "",
             coins: 0,
-            trophy: "None"
+            attempts: 1
         };
 
-        function registerUser() {
-            const name = document.getElementById('reg-name').value;
-            const role = document.getElementById('reg-role').value;
-            
-            if(!name) return alert("Enter your name");
-            
-            state.user = { name, role };
-            
-            // Hide Auth / Show Dashboard
-            document.getElementById('auth-box').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('user-nav').classList.remove('hidden');
-            
-            // Show Role Specific Tools
-            if(role === 'teacher' || role === 'admin') {
-                document.getElementById('teacher-tools').classList.remove('hidden');
-            }
-            
-            document.getElementById('coin-stat').innerText = state.coins;
+        const CORRECT_INDEX = 1; // Chlorophyll
+
+        function toggleSchoolField() {
+            const role = document.getElementById('login-role').value;
+            const container = document.getElementById('school-select-container');
+            container.style.display = (role === 'superadmin') ? 'none' : 'block';
         }
 
-        function answer(correct) {
-            if(correct) {
-                state.coins += 500;
-                updateStats();
-                alert("🎉 Correct! 500 Coins added to your vault.");
+        function login() {
+            session.user = document.getElementById('user-id').value;
+            session.role = document.getElementById('login-role').value;
+            session.school = document.getElementById('user-school').value;
+
+            if(!session.user) return alert("Enter User ID");
+
+            // Hide Auth
+            document.getElementById('auth-gate').classList.add('hidden-section');
+            document.getElementById('nav-actions').classList.remove('hidden-section');
+            
+            // Header Info
+            document.getElementById('user-display-name').innerText = session.user;
+            document.getElementById('user-display-school').innerText = session.role === 'superadmin' ? "System Master" : session.school;
+
+            // Role Routing
+            if(session.role === 'superadmin') {
+                document.getElementById('superadmin-panel').classList.remove('hidden-section');
+            } else if (session.role === 'hoi') {
+                document.getElementById('hoi-panel').classList.remove('hidden-section');
+                document.getElementById('hoi-school-title').innerText = session.school;
+            } else if (session.role === 'student') {
+                document.getElementById('student-panel').classList.remove('hidden-section');
+            }
+        }
+
+        function checkAnswer(idx) {
+            if(session.attempts > 3) return alert("Quiz locked! You've used all 3 attempts.");
+
+            if(idx === CORRECT_INDEX) {
+                let gain = (session.attempts === 1) ? 5 : 2;
+                session.coins += gain;
+                alert(`Excellent! You earned ${gain} coins on attempt ${session.attempts}.`);
+                document.getElementById('coin-balance').innerText = session.coins;
+                // Award Trophies logic would go here
             } else {
-                alert("❌ Wrong answer. Try the next one!");
+                session.attempts++;
+                if(session.attempts <= 3) {
+                    alert(`Wrong! Try again. Attempt ${session.attempts} starting...`);
+                    document.getElementById('attempts-left').innerText = `Attempt: ${session.attempts}/3`;
+                } else {
+                    alert("Out of attempts! 0 coins earned.");
+                    document.getElementById('attempts-left').className = "bg-red-100 text-red-700 px-4 py-1 rounded-full text-xs font-bold mb-2";
+                    document.getElementById('attempts-left').innerText = "LOCKED";
+                }
             }
-        }
-
-        function updateStats() {
-            document.getElementById('coin-stat').innerText = state.coins;
-            const t = document.getElementById('trophy-stat');
-            
-            if(state.coins >= 2000) t.innerText = "🥇";
-            else if(state.coins >= 1000) t.innerText = "🥈";
-            else if(state.coins >= 500) t.innerText = "🥉";
         }
 
         function logout() { location.reload(); }
     </script>
 </body>
 </html>
+
