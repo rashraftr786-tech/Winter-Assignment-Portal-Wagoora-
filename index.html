@@ -1,12 +1,105 @@
-<div class="dashboard">
-    <div id="user-stats">
-        <span>Coins: <b id="coin-count">0</b></span>
-        <span id="trophy-slot">Rank: Participant</span>
-    </div>
-    
-    <div class="leaderboard">
-        <h2>Winter Rankings</h2>
-        <ul id="leaderboard-list">
-            </ul>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winter Assignment & Quiz Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gold { color: #ffd700; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
+        .silver { color: #c0c0c0; }
+        .bronze { color: #cd7f32; }
+        .snow-bg { background: linear-gradient(to bottom, #e6f2ff, #ffffff); }
+    </style>
+</head>
+<body class="snow-bg min-h-screen font-sans">
+
+    <nav class="bg-blue-600 text-white p-4 shadow-lg flex justify-between items-center">
+        <h1 class="text-xl font-bold">❄️ Winter Portal</h1>
+        <div id="user-stats" class="hidden space-x-4">
+            <span>💰 Coins: <span id="coin-display">0</span></span>
+            <span id="rank-display">🏆 Rank: Participant</span>
+            <button onclick="logout()" class="bg-red-500 px-3 py-1 rounded text-sm">Logout</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-6">
+        
+        <section id="auth-section" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md mt-10">
+            <h2 class="text-2xl font-bold mb-6 text-center">Sign In</h2>
+            <input type="text" id="username" placeholder="Enter Student Name" class="w-full border p-2 mb-4 rounded">
+            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">Enter Portal</button>
+            <p class="text-xs text-gray-500 mt-4 text-center">Cross-device sync requires Firebase (Coming Soon)</p>
+        </section>
+
+        <section id="main-dashboard" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="md:col-span-2 bg-white p-6 rounded-xl shadow">
+                <h2 class="text-xl font-bold mb-4">Winter Quiz Assignment</h2>
+                <div id="quiz-container">
+                    <p class="mb-4">Question: What is the freezing point of water?</p>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(true)" class="w-full text-left p-3 border rounded hover:bg-blue-50">A) 0°C</button>
+                        <button onclick="checkAnswer(false)" class="w-full text-left p-3 border rounded hover:bg-blue-50">B) 100°C</button>
+                    </div>
+                </div>
+                <div id="quiz-feedback" class="mt-4 font-bold"></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h2 class="text-xl font-bold mb-4">Top Achievers</h2>
+                <ul id="leaderboard-list" class="space-y-3">
+                    <li class="flex justify-between border-b pb-2">
+                        <span class="gold font-bold">1. Admin (Pro)</span>
+                        <span>🥇 5000</span>
+                    </li>
+                    </ul>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        let currentUser = null;
+        let coins = parseInt(localStorage.getItem('winter_coins')) || 0;
+
+        function login() {
+            const name = document.getElementById('username').value;
+            if (name) {
+                currentUser = name;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                document.getElementById('user-stats').classList.remove('hidden');
+                updateUI();
+            }
+        }
+
+        function checkAnswer(isCorrect) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (isCorrect) {
+                coins += 50;
+                feedback.innerText = "❄️ Correct! +50 Coins";
+                feedback.className = "mt-4 font-bold text-green-600";
+                localStorage.setItem('winter_coins', coins);
+                updateUI();
+            } else {
+                feedback.innerText = "❌ Try again next time!";
+                feedback.className = "mt-4 font-bold text-red-600";
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('coin-display').innerText = coins;
+            const rankDisplay = document.getElementById('rank-display');
+            
+            if (coins >= 500) rankDisplay.innerHTML = "🏆 Rank: <span class='gold'>Gold Trophy</span>";
+            else if (coins >= 200) rankDisplay.innerHTML = "🏆 Rank: <span class='silver'>Silver Trophy</span>";
+            else if (coins >= 50) rankDisplay.innerHTML = "🏆 Rank: <span class='bronze'>Bronze Trophy</span>";
+        }
+
+        function logout() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
