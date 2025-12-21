@@ -1,12 +1,16 @@
-// Global System State
 let state = {
     currentUser: null,
+    // Pre-defined global subjects per Super Admin requirements
     globalSubjects: [
         { name: "English", cat: "Foundational" },
-        { name: "Maths", cat: "Foundational" }
+        { name: "Maths", cat: "Foundational" },
+        { name: "EVS", cat: "Primary" },
+        { name: "Science", cat: "Middle" }
     ],
-    teachers: [], // Created by HOI
-    quizzes: []   // Created by Teachers
+    // Database simulations
+    schools: [],
+    teachers: [], // Objects: { username, password, subject, schoolName }
+    quizzes: []   // Objects: { question, options, correct, subject, creator }
 };
 
 function handleLogin() {
@@ -14,45 +18,76 @@ function handleLogin() {
     const user = document.getElementById('user-field').value;
     const pass = document.getElementById('pass-field').value;
 
-    // Super Admin Default: admin / super123
-    if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
-        initPortal('superadmin', 'System Master');
-    } else if (role === 'hoi') {
-        initPortal('hoi', user);
-    } else if (role === 'teacher') {
-        initPortal('teacher', user);
-    } else {
+    // --- SECURITY LAYER: Role-Specific Verification ---
+    if (role === 'superadmin') {
+        if (user === 'admin' && pass === 'super123') {
+            initPortal('superadmin', 'System Master');
+        } else { alert("Invalid Super Admin Credentials"); }
+        return;
+    }
+
+    if (role === 'hoi') {
+        // In a real app, check against state.schools
+        if (pass === 'welcome@123') {
+            initPortal('hoi', user);
+        } else { alert("Invalid HOI Password"); }
+        return;
+    }
+
+    if (role === 'teacher') {
+        const foundTeacher = state.teachers.find(t => t.username === user && t.password === pass);
+        if (foundTeacher) {
+            initPortal('teacher', user, foundTeacher.subject);
+        } else { alert("Teacher not found or incorrect password"); }
+        return;
+    }
+
+    if (role === 'student') {
         initPortal('student', user);
+        return;
     }
 }
 
-function initPortal(role, name) {
-    state.currentUser = { role, name };
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-dashboard').style.display = 'grid';
+function initPortal(role, name, subject = null) {
+    state.currentUser = { role, name, subject };
+    
+    // UI Transitions
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-dashboard').classList.remove('hidden');
     document.getElementById('nav-info').classList.remove('hidden');
     document.getElementById('display-role').innerText = role;
     
-    showPanel(role);
-}
+    // --- SECURITY LAYER: Only show the panel matching the role ---
+    document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('panel-' + role).classList.remove('hidden');
 
-function showPanel(id) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    const activePanel = document.getElementById('panel-' + id);
-    if(activePanel) activePanel.classList.add('active');
-}
-
-// HOI Logic: Register Teacher
-function registerTeacher() {
-    const user = document.getElementById('t-user').value;
-    const sub = document.getElementById('t-subject-select').value;
-    if(user) {
-        state.teachers.push({ username: user, subject: sub, password: 'staff@wagoora' });
-        alert(`Teacher ${user} registered for ${sub}. Default pass: staff@wagoora`);
+    if (role === 'teacher') {
+        document.getElementById('active-subject-display').innerText = subject;
+    }
+    
+    if (role === 'hoi') {
+        populateHOISubjectDropdown();
     }
 }
 
-// Teacher Logic: Upload Quiz
+function populateHOISubjectDropdown() {
+    const select = document.getElementById('t-subject-select');
+    select.innerHTML = state.globalSubjects.map(s => `<option value="${s.name}">${s.name} (${s.cat})</option>`).join('');
+}
+
+function registerTeacher() {
+    const user = document.getElementById('t-user').value;
+    const sub = document.getElementById('t-subject-select').value;
+    if (user) {
+        state.teachers.push({ 
+            username: user, 
+            password: 'staff@wagoora', 
+            subject: sub 
+        });
+        alert(`Teacher ${user} added for ${sub}`);
+    }
+}
+
 function uploadQuiz() {
     const question = document.getElementById('q-text').value;
     const options = [
@@ -63,9 +98,17 @@ function uploadQuiz() {
     ];
     const correct = document.getElementById('correct-opt').value;
 
-    state.quizzes.push({ question, options, correct: parseInt(correct) });
-    alert("Quiz Published to your class!");
+    state.quizzes.push({
+        question,
+        options,
+        correct: parseInt(correct),
+        subject: state.currentUser.subject, // Automatically linked to teacher's subject
+        creator: state.currentUser.name
+    });
+
+    alert(`Quiz for ${state.currentUser.subject} Published!`);
+    // Clear form
+    document.getElementById('q-text').value = "";
 }
 
 function logout() { location.reload(); }
-
