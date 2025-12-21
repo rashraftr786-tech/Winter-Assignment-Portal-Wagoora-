@@ -1,5 +1,5 @@
 /**
- * WAGOORA V3.0 - CLOUD CORE
+ * WAGOORA V3.0 - CLOUD CORE (FINAL STABLE)
  */
 
 // 1. FIREBASE CONFIG
@@ -12,7 +12,10 @@ const firebaseConfig = {
   appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize only once
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
 // 2. APP STATE
@@ -46,12 +49,9 @@ async function handleLogin() {
 
             if (!query.empty) {
                 const data = query.docs[0].data();
-                
-                // Check if user set a custom password, otherwise use global default
                 const validPass = data.password || "welcome@123"; 
 
                 if (pass === validPass) {
-                    // Success: Log in with the School Name as the session ID
                     initPortal('hoi', data.schoolName); 
                 } else {
                     alert("Invalid Password");
@@ -60,99 +60,116 @@ async function handleLogin() {
                 alert("HOI Username not found in Cloud");
             }
         } catch (e) {
-            console.error(e);
-            alert("Connection Error");
+            alert("Login Connection Error");
         }
         return;
     }
-
-    // 3. Other Roles
-    if (role === 'teacher') initPortal('teacher', user, "General Science");
-    if (role === 'student') initPortal('student', user, "Standard Curriculum");
+    
+    // Default roles
+    if (role === 'teacher') initPortal('teacher', user);
+    if (role === 'student') initPortal('student', user);
 }
-
 
 function initPortal(role, name) {
     state.currentUser = { role, name };
+    
     document.getElementById('login-screen').classList.add('hidden');
     const mainDash = document.getElementById('main-dashboard');
     mainDash.classList.remove('hidden');
     mainDash.style.display = (window.innerWidth < 1024) ? 'block' : 'grid';
     
-    document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
-    document.getElementById('panel-' + role).classList.remove('hidden');
+    // Fix: Explicitly show/hide panels
+    document.querySelectorAll('.panel').forEach(p => {
+        p.classList.add('hidden');
+        p.style.display = 'none';
+    });
+    
+    const activePanel = document.getElementById('panel-' + role);
+    if (activePanel) {
+        activePanel.classList.remove('hidden');
+        activePanel.style.display = 'block';
+    }
 
     renderSidebar(role);
-    startCloudListeners(); //
+    startCloudListeners(); 
 }
 
 // --- CLOUD ENGINE ---
 function startCloudListeners() {
+    // Sync Schools
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
         renderSchoolList();
     });
 
+    // Sync Subjects
     db.collection("subjects").onSnapshot(s => {
         state.globalSubjects = s.docs.map(d => d.data());
-        updateHOISubjectDropdown(); // FIX: Fills the dropdown so 'subject' isn't empty
+        updateHOISubjectDropdown(); 
     });
 
+    // Sync HOIs (For Super Admin view)
+    db.collection("hois").onSnapshot(s => {
+        state.hois = s.docs.map(d => d.data());
+        renderHOIList();
+    });
+
+    // Sync Teachers
     db.collection("teachers").orderBy("createdAt", "desc").onSnapshot(s => {
         state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
         renderTeacherList();
     });
 }
 
-// --- HOI TEACHER MANAGEMENT ---
+// --- CLOUD WRITE FUNCTIONS ---
+async function appointHOI() {
+    const user = document.getElementById('hoi-username').value.trim();
+    const pass = document.getElementById('hoi-password').value.trim();
+    const school = document.getElementById('hoi-school-select').value;
+
+    if (user && school) {
+        await db.collection("hois").add({
+            username: user,
+            password: pass || "welcome@123",
+            schoolName: school,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('hoi-username').value = '';
+        alert("HOI Appointed!");
+    }
+}
+
 async function addTeacher() {
     const nameEl = document.getElementById('t-name');
     const subEl = document.getElementById('t-subject');
-    
-    if (!nameEl || !subEl) return console.error("HTML IDs missing!");
-
     const name = nameEl.value.trim();
     const subject = subEl.value;
 
     if (name && subject) {
-        try {
-            await db.collection("teachers").add({
-                name, 
-                subject, 
-                schoolContext: state.currentUser.name,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            nameEl.value = '';
-            alert("Teacher Added!");
-        } catch (e) { alert("Error adding to cloud"); }
-    } else {
-        alert("Please enter Name and select a Subject");
+        await db.collection("teachers").add({
+            name, subject, 
+            schoolContext: state.currentUser.name,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        nameEl.value = '';
+        alert("Teacher Added!");
     }
 }
 
 async function removeTeacher(id) {
-    if(confirm("Remove from Cloud?")) {
-        await db.collection("teachers").doc(id).delete(); //
-    }
+    if(confirm("Remove?")) await db.collection("teachers").doc(id).delete();
 }
 
 // --- RENDERING ---
-function renderSchoolList() {
-    const list = document.getElementById('school-list');
-    const dropdown = document.getElementById('hoi-school-select');
+function renderHOIList() {
+    const list = document.getElementById('hoi-list');
     if (!list) return;
-
-    list.innerHTML = state.schools.map(s => `
-        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 animate-fadeIn">
-            <div class="text-left"><p class="font-bold text-sm">${s.name}</p><p class="text-[10px] text-indigo-300 uppercase">${s.location}</p></div>
-            <i class="fas fa-cloud text-indigo-500/30"></i>
+    list.innerHTML = state.hois.map(h => `
+        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
+            <div><p class="font-bold text-sm">${h.username}</p><p class="text-[10px] text-indigo-400 uppercase">${h.schoolName}</p></div>
+            <i class="fas fa-user-check text-green-500/40"></i>
         </div>
-    `).join('') || '<p class="col-span-full opacity-30 italic py-10 text-center text-xs">Waiting for registry...</p>';
-
-    if (dropdown) {
-        dropdown.innerHTML = '<option value="">Select School</option>' + 
-            state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-    }
+    `).join('');
 }
 
 function updateHOISubjectDropdown() {
@@ -166,32 +183,35 @@ function updateHOISubjectDropdown() {
 function renderTeacherList() {
     const list = document.getElementById('teacher-list');
     if (!list) return;
-
-    // Filter to only show teachers for THIS HOI's school
     const myTeachers = state.teachers.filter(t => t.schoolContext === state.currentUser.name);
-
     list.innerHTML = myTeachers.map(t => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
             <div><p class="font-bold text-sm">${t.name}</p><p class="text-[10px] text-indigo-400 uppercase">${t.subject}</p></div>
-            <button onclick="removeTeacher('${t.id}')" class="text-red-400 p-2 hover:bg-red-500/10 rounded-lg">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+            <button onclick="removeTeacher('${t.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
         </div>
-    `).join('') || '<p class="text-xs opacity-20 py-4">No staff registered for this school.</p>';
+    `).join('') || '<p class="text-xs opacity-20 py-4">No staff registered.</p>';
+}
+
+function renderSchoolList() {
+    const list = document.getElementById('school-list');
+    const dropdown = document.getElementById('hoi-school-select');
+    if (list) {
+        list.innerHTML = state.schools.map(s => `<div class="glass p-4 rounded-xl text-left"><p class="font-bold text-sm">${s.name}</p></div>`).join('');
+    }
+    if (dropdown) {
+        dropdown.innerHTML = '<option value="">Select School</option>' + 
+            state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    }
 }
 
 function renderSidebar(role) {
     const sidebar = document.getElementById('sidebar-menu');
-    if (!sidebar) return;
-    sidebar.innerHTML = `<div class="glass p-4 rounded-2xl text-xs uppercase opacity-50 font-bold border-l-4 border-indigo-500">
-        ${role} DASHBOARD</div>`;
+    if (sidebar) sidebar.innerHTML = `<div class="p-4 glass rounded-2xl font-bold text-xs uppercase">${role}</div>`;
 }
 
-function updateCoinDisplay() {
-    const el = document.getElementById('student-coins');
-    if (el) el.innerText = state.studentProgress.coins;
-}
+function logout() { location.reload(); }
 
-function logout() {
-    if(confirm("Exit Wagoora Cloud?")) location.reload();
-}
+
+
+
+
