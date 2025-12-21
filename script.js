@@ -1,11 +1,8 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+/**
+ * WAGOORA V3.0 - CLOUD CORE
+ */
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// 1. FIREBASE CONFIGURATION (Using your actual keys)
 const firebaseConfig = {
   apiKey: "AIzaSyBcRfUj9N_9LaVuEuIT7d0ueJ88heyP9hI",
   authDomain: "wagoora-edu-portal.firebaseapp.com",
@@ -16,34 +13,15 @@ const firebaseConfig = {
   measurementId: "G-PPQEPJD3YN"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-/**
- * WAGOORA V3.0 - CLOUD CORE
- * Features: Firebase Firestore Sync, Cross-Device Logic, Real-time Updates
- */
-
-// 1. FIREBASE CONFIGURATION
-// Replace these values with your actual Firebase Project keys
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef"
-};
-
-// Initialize Firebase
+// Initialize Firebase using the Compat SDK
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // 2. APP STATE
 let state = {
     currentUser: null,
-    globalSubjects: [], // Will load from Cloud
-    schools: [],        // Will load from Cloud
+    globalSubjects: [], 
+    schools: [],        
     teachers: [], 
     quizzes: [],   
     studentProgress: {
@@ -72,7 +50,6 @@ function handleLogin() {
         } else { alert("Invalid HOI Password"); }
     } 
     else if (role === 'teacher') {
-        // In Cloud version, we check the 'teachers' collection in Firestore
         initPortal('teacher', user, "Science"); 
     } 
     else if (role === 'student') {
@@ -105,7 +82,7 @@ function initPortal(role, name, subject = null) {
     if (role === 'teacher') document.getElementById('active-subject-display').innerText = subject;
     if (role === 'student') {
         updateCoinDisplay();
-        loadStudentQuiz();
+        // loadStudentQuiz(); // Make sure this function exists or is commented out
     }
 }
 
@@ -115,36 +92,15 @@ function startCloudListeners() {
     db.collection("schools").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         state.schools = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderSchoolList();
+    }, (error) => {
+        console.error("Firestore Error:", error);
     });
 
     // 2. Sync Subjects (Real-time)
     db.collection("subjects").orderBy("name").onSnapshot((snapshot) => {
         state.globalSubjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderSubjectList();
-        if (state.currentUser && state.currentUser.role === 'hoi') populateHOISubjects();
     });
-}
-
-// --- UI RENDERERS ---
-function renderSidebar(role) {
-    const sidebar = document.getElementById('sidebar-menu');
-    let menuHTML = '';
-
-    if (role === 'superadmin') {
-        menuHTML = `
-            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
-                <i class="fas fa-layer-group mr-2"></i> Subjects
-            </button>
-            <button onclick="document.getElementById('school-name').scrollIntoView({behavior: 'smooth'})" class="w-full text-left p-4 glass rounded-2xl text-white font-bold hover:bg-white/10 transition">
-                <i class="fas fa-school mr-2 text-indigo-400"></i> Schools Registry
-            </button>`;
-    } else if (role === 'student') {
-        menuHTML = `<div class="glass p-4 rounded-2xl border-b-4 border-yellow-500/50">
-            <p class="text-[10px] uppercase font-bold text-gray-400">Current Session</p>
-            <p class="font-bold text-sm">${state.currentUser.subject}</p>
-        </div>`;
-    }
-    sidebar.innerHTML = menuHTML;
 }
 
 // --- CLOUD WRITE FUNCTIONS ---
@@ -164,7 +120,10 @@ async function registerNewSchool() {
             nameInput.value = '';
             locInput.value = '';
             alert("School Added to Cloud Registry!");
-        } catch (e) { alert("Error: Check your internet connection"); }
+        } catch (e) { 
+            console.error(e);
+            alert("Error: Make sure you enabled Firestore in Test Mode!"); 
+        }
     }
 }
 
@@ -179,7 +138,7 @@ async function addGlobalSubject() {
     }
 }
 
-// --- LIST RENDERERS ---
+// --- UI RENDERERS ---
 function renderSchoolList() {
     const list = document.getElementById('school-list');
     if (!list) return;
@@ -212,10 +171,23 @@ function renderSubjectList() {
     `).join('');
 }
 
-// --- REMAINING LOGIC (HOI, Teacher, Student) ---
-// ... (Your existing functions for populateHOISubjects, uploadQuiz, loadStudentQuiz remain the same) ...
-
-function logout() {
-    if(confirm("Logout from V3.0 Cloud?")) location.reload();
+function renderSidebar(role) {
+    const sidebar = document.getElementById('sidebar-menu');
+    let menuHTML = '';
+    if (role === 'superadmin') {
+        menuHTML = `
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
+                <i class="fas fa-layer-group mr-2"></i> Subjects
+            </button>`;
+    }
+    sidebar.innerHTML = menuHTML;
 }
 
+function updateCoinDisplay() {
+    const el = document.getElementById('student-coins');
+    if (el) el.innerText = state.studentProgress.coins;
+}
+
+function logout() {
+    if(confirm("Logout?")) location.reload();
+}
