@@ -1,5 +1,5 @@
 /**
- * WAGOORA V3.0 - CLOUD CORE
+ * WAGOORA V3.0 - CLOUD CORE (COMPLETE UPDATE)
  */
 
 // 1. FIREBASE CONFIGURATION
@@ -12,7 +12,6 @@ const firebaseConfig = {
   appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
 };
 
-// Initialize Firebase using the Compat SDK
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -21,6 +20,7 @@ let state = {
     currentUser: null,
     globalSubjects: [], 
     schools: [],        
+    hois: [],
     studentProgress: {
         coins: parseInt(localStorage.getItem('wagoora_coins')) || 0
     }
@@ -34,35 +34,26 @@ function handleLogin() {
 
     if (!user || !pass) return alert("Please fill all fields");
 
-    // Super Admin Credentials
-    if (role === 'superadmin') {
-        if (user === 'admin' && pass === 'super123') {
-            initPortal('superadmin', 'System Master');
-        } else { alert("Invalid Admin Credentials"); }
-    } 
-    // HOI Credentials
-    else if (role === 'hoi') {
-        if (pass === 'welcome@123') {
-            initPortal('hoi', user);
-        } else { alert("Invalid HOI Password"); }
-    } 
-    // Teacher & Student Access
-    else if (role === 'teacher') {
+    if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
+        initPortal('superadmin', 'System Master');
+    } else if (role === 'hoi' && pass === 'welcome@123') {
+        initPortal('hoi', user);
+    } else if (role === 'teacher') {
         initPortal('teacher', user, "General Science"); 
-    } 
-    else if (role === 'student') {
+    } else if (role === 'student') {
         initPortal('student', user, "Standard Curriculum"); 
+    } else {
+        alert("Access Denied");
     }
 }
 
 function initPortal(role, name, subject = null) {
     state.currentUser = { role, name, subject };
     
-    // UI TRANSITION: Switch from Login to Dashboard
     document.getElementById('login-screen').classList.add('hidden');
     const mainDash = document.getElementById('main-dashboard');
     
-    // FIX: Explicitly set display to 'grid' for Tailwind layouts
+    // UI Layout Fix
     mainDash.classList.remove('hidden');
     mainDash.style.display = (window.innerWidth < 1024) ? 'block' : 'grid';
     
@@ -70,7 +61,6 @@ function initPortal(role, name, subject = null) {
     document.getElementById('nav-info').style.display = 'flex';
     document.getElementById('display-role').innerText = role;
     
-    // Reset all panels before showing the active one
     document.querySelectorAll('.panel').forEach(p => {
         p.classList.add('hidden');
         p.style.display = 'none';
@@ -82,9 +72,8 @@ function initPortal(role, name, subject = null) {
         activePanel.style.display = 'block';
     }
 
-    // TRIGGER CORE FUNCTIONS
     renderSidebar(role);
-    startCloudListeners(); // Connect to Firebase
+    startCloudListeners(); // Start real-time sync
 
     if (role === 'teacher') document.getElementById('active-subject-display').innerText = subject;
     if (role === 'student') updateCoinDisplay();
@@ -92,96 +81,99 @@ function initPortal(role, name, subject = null) {
 
 // --- CLOUD ENGINE (REAL-TIME) ---
 function startCloudListeners() {
-    // Sync Schools
+    // A. Watch Schools
     db.collection("schools").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         state.schools = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderSchoolList();
-    }, (error) => {
-        console.error("Firestore Schools Error:", error);
+        renderSchoolList(); // This also updates the HOI Dropdown
     });
 
-    // Sync Subjects
+    // B. Watch Subjects
     db.collection("subjects").orderBy("name").onSnapshot((snapshot) => {
         state.globalSubjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderSubjectList();
+    });
+
+    // C. Watch HOI Appointments
+    db.collection("hois").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        state.hois = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderHOIList();
     });
 }
 
 // --- CLOUD WRITE FUNCTIONS ---
 async function registerNewSchool() {
-    const nameInput = document.getElementById('school-name');
-    const locInput = document.getElementById('school-location');
-    const name = nameInput.value.trim();
-    const loc = locInput.value.trim();
-
+    const name = document.getElementById('school-name').value.trim();
+    const loc = document.getElementById('school-location').value.trim();
     if (name && loc) {
-        try {
-            await db.collection("schools").add({
-                name,
-                location: loc,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            nameInput.value = '';
-            locInput.value = '';
-            alert("School Registered to Cloud!");
-        } catch (e) { 
-            console.error(e);
-            alert("Database Write Error. Check Rules."); 
-        }
+        await db.collection("schools").add({
+            name, location: loc, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('school-name').value = '';
+        document.getElementById('school-location').value = '';
     }
 }
 
 async function addGlobalSubject() {
-    const nameInput = document.getElementById('sub-name');
+    const name = document.getElementById('sub-name').value.trim();
     const cat = document.getElementById('sub-cat').value;
-    const name = nameInput.value.trim();
-
     if (name) {
         await db.collection("subjects").add({ name, cat });
-        nameInput.value = '';
-        alert("Subject Added!");
+        document.getElementById('sub-name').value = '';
     }
 }
 
-// --- UI RENDERERS ---
+async function appointHOI() {
+    const user = document.getElementById('hoi-username').value.trim();
+    const school = document.getElementById('hoi-school-select').value;
+    if (user && school) {
+        await db.collection("hois").add({
+            username: user, schoolName: school, role: 'hoi',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('hoi-username').value = '';
+        alert("HOI Appointed!");
+    } else {
+        alert("Please fill all HOI fields");
+    }
+}
+
+// --- RENDERING ---
 function renderSchoolList() {
     const list = document.getElementById('school-list');
-    const dropdown = document.getElementById('hoi-school-select'); // New reference
+    const dropdown = document.getElementById('hoi-school-select');
     if (!list) return;
 
-    if (state.schools.length === 0) {
-        list.innerHTML = `<p class="col-span-full opacity-30 italic py-10">Fetching cloud registry...</p>`;
-        return;
-    }
-
-    // Update the visual list
     list.innerHTML = state.schools.map(s => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 animate-fadeIn">
-            <div class="text-left">
-                <p class="font-bold text-sm text-white">${s.name}</p>
-                <p class="text-[10px] text-indigo-300 uppercase tracking-widest">${s.location || 'Global'}</p>
-            </div>
+            <div class="text-left"><p class="font-bold text-sm">${s.name}</p><p class="text-[10px] text-indigo-300 uppercase">${s.location}</p></div>
             <i class="fas fa-cloud text-indigo-500/30"></i>
         </div>
-    `).join('');
+    `).join('') || '<p class="col-span-full opacity-30 italic py-10">No schools found.</p>';
 
-    // Update the HOI dropdown
+    // Update the HOI selection dropdown
     if (dropdown) {
         dropdown.innerHTML = '<option value="">Select School</option>' + 
             state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
     }
 }
 
+function renderHOIList() {
+    const list = document.getElementById('hoi-list');
+    if (!list) return;
+    list.innerHTML = state.hois.map(h => `
+        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 animate-fadeIn">
+            <div><p class="font-bold text-sm text-white">${h.username}</p><p class="text-[10px] text-indigo-400 uppercase font-black">${h.schoolName}</p></div>
+            <i class="fas fa-user-check text-green-500/40"></i>
+        </div>
+    `).join('') || '<p class="col-span-full opacity-20 text-xs italic">No HOIs appointed yet.</p>';
+}
+
 function renderSubjectList() {
     const list = document.getElementById('subject-list');
     if (!list) return;
-
     list.innerHTML = state.globalSubjects.map(s => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
-            <div class="text-left">
-                <p class="font-bold text-sm text-white">${s.name}</p>
-                <p class="text-[10px] text-gray-500 uppercase">${s.cat}</p>
-            </div>
+            <div class="text-left"><p class="font-bold text-sm">${s.name}</p><p class="text-[10px] text-gray-500 uppercase">${s.cat}</p></div>
             <i class="fas fa-check-circle text-indigo-500"></i>
         </div>
     `).join('');
@@ -189,17 +181,11 @@ function renderSubjectList() {
 
 function renderSidebar(role) {
     const sidebar = document.getElementById('sidebar-menu');
-    if (!sidebar) return;
-
     if (role === 'superadmin') {
-        sidebar.innerHTML = `
-            <button class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
-                <i class="fas fa-layer-group mr-2"></i> Cloud Overview
-            </button>
-            <div class="p-4 text-[10px] text-gray-500 uppercase font-bold tracking-widest">Master Controls</div>
-        `;
+        sidebar.innerHTML = `<button class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
+            <i class="fas fa-layer-group mr-2"></i> Cloud Overview</button>`;
     } else {
-        sidebar.innerHTML = `<div class="glass p-4 rounded-2xl text-xs uppercase opacity-50 font-bold">Standard User Access</div>`;
+        sidebar.innerHTML = `<div class="glass p-4 rounded-2xl text-xs uppercase opacity-50 font-bold">Standard Access</div>`;
     }
 }
 
@@ -209,26 +195,5 @@ function updateCoinDisplay() {
 }
 
 function logout() {
-    if(confirm("Exit Wagoora Cloud?")) location.reload();
-}
-async function appointHOI() {
-    const user = document.getElementById('hoi-username').value.trim();
-    const school = document.getElementById('hoi-school-select').value;
-
-    if (!user || !school) return alert("Please enter a username and select a school");
-
-    try {
-        await db.collection("hois").add({
-            username: user,
-            schoolName: school,
-            role: 'hoi',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        document.getElementById('hoi-username').value = '';
-        alert(`HOI ${user} appointed for ${school}!`);
-    } catch (e) {
-        console.error(e);
-        alert("Error saving HOI to cloud.");
-    }
+    if(confirm("Logout?")) location.reload();
 }
