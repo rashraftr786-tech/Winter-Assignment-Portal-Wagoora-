@@ -211,3 +211,24 @@ function updateCoinDisplay() {
 function logout() {
     if(confirm("Exit Wagoora Cloud?")) location.reload();
 }
+async function appointHOI() {
+    const user = document.getElementById('hoi-username').value.trim();
+    const school = document.getElementById('hoi-school-select').value;
+
+    if (!user || !school) return alert("Please enter a username and select a school");
+
+    try {
+        await db.collection("hois").add({
+            username: user,
+            schoolName: school,
+            role: 'hoi',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        document.getElementById('hoi-username').value = '';
+        alert(`HOI ${user} appointed for ${school}!`);
+    } catch (e) {
+        console.error(e);
+        alert("Error saving HOI to cloud.");
+    }
+}
