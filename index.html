@@ -81,24 +81,34 @@
                 </div>
 
                 <div id="panel-teacher" class="panel hidden space-y-6">
-                    <div class="glass p-8 rounded-[2rem]">
-                        <h3 class="text-xl font-bold mb-4">Create 4-Response Quiz</h3>
-                        <textarea id="q-text" class="w-full mb-4" placeholder="Enter Question..."></textarea>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="opt-0" placeholder="Option A">
-                            <input type="text" id="opt-1" placeholder="Option B">
-                            <input type="text" id="opt-2" placeholder="Option C">
-                            <input type="text" id="opt-3" placeholder="Option D">
-                        </div>
-                        <select id="correct-opt" class="mt-4">
-                            <option value="0">A is Correct</option>
-                            <option value="1">B is Correct</option>
-                            <option value="2">C is Correct</option>
-                            <option value="3">D is Correct</option>
-                        </select>
-                        <button onclick="uploadQuiz()" class="btn-glow w-full mt-4 p-3 rounded-xl">Publish Quiz</button>
-                    </div>
-                </div>
+    <div class="glass p-8 rounded-[2rem]">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">Quiz Creator</h3>
+            <span class="bg-indigo-500/20 text-indigo-400 px-4 py-1 rounded-full text-xs font-bold">
+                Subject: <span id="active-subject-display">Not Set</span>
+            </span>
+        </div>
+        
+        <textarea id="q-text" class="w-full mb-4" placeholder="Enter Question..."></textarea>
+        <div class="grid grid-cols-2 gap-4">
+            <input type="text" id="opt-0" placeholder="Option A">
+            <input type="text" id="opt-1" placeholder="Option B">
+            <input type="text" id="opt-2" placeholder="Option C">
+            <input type="text" id="opt-3" placeholder="Option D">
+        </div>
+        <div class="mt-4">
+            <label class="text-xs text-gray-400 block mb-2 uppercase">Select Correct Response</label>
+            <select id="correct-opt" class="w-full">
+                <option value="0">A is Correct</option>
+                <option value="1">B is Correct</option>
+                <option value="2">C is Correct</option>
+                <option value="3">D is Correct</option>
+            </select>
+        </div>
+        <button onclick="uploadQuiz()" class="btn-glow w-full mt-6 p-4 rounded-xl font-bold uppercase">Publish to Students</button>
+    </div>
+</div>
+
 
                 <div id="panel-student" class="panel hidden space-y-6">
                     </div>
