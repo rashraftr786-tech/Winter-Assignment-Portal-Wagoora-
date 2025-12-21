@@ -32,23 +32,45 @@ async function handleLogin() {
 
     if (!user || !pass) return alert("Fill all fields");
 
+    // 1. Super Admin (Hardcoded)
     if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
-        initPortal('superadmin', 'System Master');
-    } else if (role === 'hoi') {
-        //
-        const query = await db.collection("hois")
-            .where("username", "==", user)
-            .where("password", "==", pass)
-            .get();
-
-        if (!query.empty) {
-            const data = query.docs[0].data();
-            initPortal('hoi', data.schoolName); 
-        } else {
-            alert("Invalid HOI Login");
-        }
+        return initPortal('superadmin', 'System Master');
     }
+
+    // 2. HOI Check (Cloud-based)
+    if (role === 'hoi') {
+        try {
+            const query = await db.collection("hois")
+                .where("username", "==", user)
+                .get();
+
+            if (!query.empty) {
+                const data = query.docs[0].data();
+                
+                // Check if user set a custom password, otherwise use global default
+                const validPass = data.password || "welcome@123"; 
+
+                if (pass === validPass) {
+                    // Success: Log in with the School Name as the session ID
+                    initPortal('hoi', data.schoolName); 
+                } else {
+                    alert("Invalid Password");
+                }
+            } else {
+                alert("HOI Username not found in Cloud");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Connection Error");
+        }
+        return;
+    }
+
+    // 3. Other Roles
+    if (role === 'teacher') initPortal('teacher', user, "General Science");
+    if (role === 'student') initPortal('student', user, "Standard Curriculum");
 }
+
 
 function initPortal(role, name) {
     state.currentUser = { role, name };
