@@ -1,3 +1,24 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBcRfUj9N_9LaVuEuIT7d0ueJ88heyP9hI",
+  authDomain: "wagoora-edu-portal.firebaseapp.com",
+  projectId: "wagoora-edu-portal",
+  storageBucket: "wagoora-edu-portal.firebasestorage.app",
+  messagingSenderId: "476444772096",
+  appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5",
+  measurementId: "G-PPQEPJD3YN"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 /**
  * WAGOORA V3.0 - CLOUD CORE
  * Features: Firebase Firestore Sync, Cross-Device Logic, Real-time Updates
