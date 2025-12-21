@@ -1,12 +1,10 @@
 /**
  * WAGOORA V3.0 - CORE LOGIC
- * Features: Role-based Security, 5-Tier School System, 3-Attempt Logic
+ * Fixes: Panel visibility, Sidebar Injection, Subject Rendering
  */
 
-// 1. GLOBAL STATE (The "Database")
 let state = {
     currentUser: null,
-    // Global Subject Catalog (As defined by Super Admin)
     globalSubjects: [
         { name: "English", cat: "Foundational" },
         { name: "Maths", cat: "Foundational" },
@@ -17,8 +15,8 @@ let state = {
         { name: "Social Science", cat: "Middle" }
     ],
     schools: [], 
-    teachers: [], // Created by HOI
-    quizzes: [],   // Created by Teachers
+    teachers: [], 
+    quizzes: [],   
     studentProgress: {
         coins: parseInt(localStorage.getItem('wagoora_coins')) || 0,
         currentQuizIndex: 0,
@@ -26,7 +24,7 @@ let state = {
     }
 };
 
-// 2. AUTHENTICATION & SECURITY
+// --- AUTHENTICATION ---
 function handleLogin() {
     const role = document.getElementById('role-select').value;
     const user = document.getElementById('user-field').value.trim();
@@ -34,10 +32,6 @@ function handleLogin() {
 
     if (!user || !pass) return alert("Please fill all fields");
 
-    // Clear any previous session UI
-    document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
-
-    // ROLE-BASED ACCESS CONTROL (RBAC)
     if (role === 'superadmin') {
         if (user === 'admin' && pass === 'super123') {
             initPortal('superadmin', 'System Master');
@@ -55,38 +49,86 @@ function handleLogin() {
         } else { alert("Teacher account not found."); }
     } 
     else if (role === 'student') {
-        // Simple entry for students - in production, link to school database
-        initPortal('student', user, "General Science"); // Default subject for demo
+        initPortal('student', user, "English"); // Default for demo
     }
 }
 
 function initPortal(role, name, subject = null) {
     state.currentUser = { role, name, subject };
     
-    // UI Setup
+    // Hide Login & Show Dashboard
     document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('main-dashboard').classList.remove('hidden');
+    const mainDash = document.getElementById('main-dashboard');
+    mainDash.classList.remove('hidden');
+    mainDash.style.display = 'grid'; // Force grid display for responsiveness
+    
     document.getElementById('nav-info').classList.remove('hidden');
     document.getElementById('display-role').innerText = role;
     
-    // Activate specific panel
-    const panel = document.getElementById('panel-' + role);
-    if (panel) panel.classList.remove('hidden');
+    // Hide all panels, then show the specific one
+    document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+    const activePanel = document.getElementById('panel-' + role);
+    if (activePanel) activePanel.classList.remove('hidden');
 
-    // Contextual Loads
-    if (role === 'teacher') {
-        document.getElementById('active-subject-display').innerText = subject;
-    }
-    if (role === 'hoi') {
-        populateHOISubjects();
-    }
+    // Load dynamic content
+    renderSidebar(role);
+    if (role === 'superadmin') renderSubjectList();
+    if (role === 'teacher') document.getElementById('active-subject-display').innerText = subject;
+    if (role === 'hoi') populateHOISubjects();
     if (role === 'student') {
         updateCoinDisplay();
         loadStudentQuiz();
     }
 }
 
-// 3. HOI & SUPER ADMIN FUNCTIONS
+// --- UI RENDERERS ---
+function renderSidebar(role) {
+    const sidebar = document.getElementById('sidebar-menu');
+    let menuHTML = '';
+
+    if (role === 'superadmin') {
+        menuHTML = `
+            <button class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
+                <i class="fas fa-layer-group mr-2"></i> Subjects
+            </button>
+            <button onclick="alert('Module coming soon')" class="w-full text-left p-4 glass rounded-2xl opacity-50">
+                <i class="fas fa-school mr-2"></i> Schools
+            </button>`;
+    } else if (role === 'student') {
+        menuHTML = `
+            <div class="glass p-4 rounded-2xl border-b-4 border-yellow-500/50">
+                <p class="text-[10px] uppercase font-bold text-gray-400">Current Session</p>
+                <p class="font-bold text-sm">${state.currentUser.subject}</p>
+            </div>`;
+    }
+    sidebar.innerHTML = menuHTML;
+}
+
+function renderSubjectList() {
+    const list = document.getElementById('subject-list');
+    if (!list) return;
+    list.innerHTML = state.globalSubjects.map(s => `
+        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 hover:border-indigo-500/30 transition">
+            <div>
+                <p class="font-bold text-sm">${s.name}</p>
+                <p class="text-[10px] text-gray-500 uppercase">${s.cat}</p>
+            </div>
+            <i class="fas fa-check-circle text-indigo-500"></i>
+        </div>
+    `).join('');
+}
+
+// --- FUNCTIONAL LOGIC ---
+function addGlobalSubject() {
+    const name = document.getElementById('sub-name').value;
+    const cat = document.getElementById('sub-cat').value;
+    if (name) {
+        state.globalSubjects.push({ name, cat });
+        renderSubjectList();
+        document.getElementById('sub-name').value = '';
+    }
+}
+
 function populateHOISubjects() {
     const select = document.getElementById('t-subject-select');
     if (select) {
@@ -101,22 +143,11 @@ function registerTeacher() {
     const sub = document.getElementById('t-subject-select').value;
     if (user) {
         state.teachers.push({ username: user, password: 'staff@wagoora', subject: sub });
-        alert(`Teacher ${user} registered successfully for ${sub}`);
+        alert(`Teacher ${user} registered for ${sub}. Pass: staff@wagoora`);
         document.getElementById('t-user').value = '';
     }
 }
 
-function addGlobalSubject() {
-    const name = document.getElementById('sub-name').value;
-    const cat = document.getElementById('sub-cat').value;
-    if (name) {
-        state.globalSubjects.push({ name, cat });
-        renderSubjectList();
-        document.getElementById('sub-name').value = '';
-    }
-}
-
-// 4. TEACHER & QUIZ CREATION
 function uploadQuiz() {
     const question = document.getElementById('q-text').value;
     const options = [
@@ -127,7 +158,7 @@ function uploadQuiz() {
     ];
     const correct = document.getElementById('correct-opt').value;
 
-    if (!question || options.some(o => !o)) return alert("Fill all quiz fields");
+    if (!question || options.some(o => !o)) return alert("Please fill all quiz fields");
 
     state.quizzes.push({
         question,
@@ -136,45 +167,38 @@ function uploadQuiz() {
         subject: state.currentUser.subject
     });
 
-    alert("Quiz Published Successfully!");
+    alert("Assignment successfully published!");
     document.getElementById('q-text').value = '';
 }
 
-// 5. STUDENT ENGINE (3-ATTEMPT LOGIC)
+// --- STUDENT QUIZ ENGINE ---
 function loadStudentQuiz() {
     const quizArea = document.getElementById('quiz-area');
     const filteredQuizzes = state.quizzes.filter(q => q.subject === state.currentUser.subject);
 
     if (filteredQuizzes.length === 0) {
-        quizArea.innerHTML = `<p class="text-center opacity-40 py-10">No quizzes available for ${state.currentUser.subject}.</p>`;
+        quizArea.innerHTML = `<p class="text-center opacity-40 py-10">No questions available for ${state.currentUser.subject}.</p>`;
         return;
     }
 
     if (state.studentProgress.currentQuizIndex >= filteredQuizzes.length) {
-        quizArea.innerHTML = `<div class="text-center py-10">
-            <h2 class="text-2xl font-bold text-green-400">Assignment Complete!</h2>
-            <p>You've answered all available questions.</p>
-        </div>`;
+        quizArea.innerHTML = `<div class="text-center py-10"><h2 class="text-2xl font-bold text-green-400">All Done!</h2></div>`;
         return;
     }
 
     const q = filteredQuizzes[state.studentProgress.currentQuizIndex];
-    
     quizArea.innerHTML = `
         <div class="animate-fadeIn">
-            <div class="flex justify-between mb-4">
-                <span class="text-xs text-indigo-400 font-bold uppercase">Attempt ${state.studentProgress.attempts + 1}/3</span>
-            </div>
+            <span class="text-[10px] text-indigo-400 font-bold uppercase mb-4 block">Attempt ${state.studentProgress.attempts + 1}/3</span>
             <p class="text-lg mb-6">${q.question}</p>
             <div class="grid grid-cols-1 gap-3">
                 ${q.options.map((opt, i) => `
-                    <button onclick="submitAnswer(${i})" class="quiz-option-btn glass hover:bg-white/10 transition text-left p-4 rounded-xl border border-white/5">
+                    <button onclick="submitAnswer(${i})" class="w-full text-left p-4 glass rounded-xl hover:bg-white/10 transition border border-white/5">
                         <span class="font-bold text-indigo-400 mr-2">${String.fromCharCode(65+i)}</span> ${opt}
                     </button>
                 `).join('')}
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
 function submitAnswer(idx) {
@@ -184,15 +208,15 @@ function submitAnswer(idx) {
     if (idx === correct) {
         let gain = (state.studentProgress.attempts === 0) ? 5 : 2;
         state.studentProgress.coins += gain;
-        alert(`CORRECT! You earned ${gain} coins.`);
+        alert(`Correct! Earned ${gain} coins.`);
         saveAndNext();
     } else {
         state.studentProgress.attempts++;
         if (state.studentProgress.attempts >= 3) {
-            alert("Maximum attempts used. Skipping to next question.");
+            alert("Skipping question.");
             saveAndNext();
         } else {
-            alert(`Wrong! Attempts used: ${state.studentProgress.attempts}/3. Try again!`);
+            alert(`Incorrect. ${3 - state.studentProgress.attempts} attempts left.`);
             loadStudentQuiz();
         }
     }
@@ -212,6 +236,5 @@ function updateCoinDisplay() {
 }
 
 function logout() {
-    if(confirm("Are you sure you want to logout?")) location.reload();
+    if(confirm("Logout from V3.0?")) location.reload();
 }
-
