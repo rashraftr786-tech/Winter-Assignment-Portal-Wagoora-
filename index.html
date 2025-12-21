@@ -7,18 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
-<body class="antialiased">
+<body class="antialiased overflow-x-hidden">
 
     <nav class="glass p-4 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <i class="fas fa-snowflake text-blue-400 text-2xl animate-pulse"></i>
-                <h1 class="font-black tracking-widest text-lg md:text-xl">WAGOORA <span class="text-indigo-500 uppercase text-xs">v3.0</span></h1>
+                <h1 class="font-black tracking-widest text-lg md:text-xl uppercase">Wagoora <span class="text-indigo-500 text-xs">v3.0</span></h1>
             </div>
             <div id="nav-info" class="hidden flex items-center gap-3 md:gap-6">
-                <span id="display-role" class="text-[9px] md:text-[10px] bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/40 uppercase font-bold text-indigo-300"></span>
-                <button onclick="logout()" class="text-red-400 hover:text-red-300 p-2"><i class="fas fa-power-off"></i></button>
+                <div class="flex flex-col items-end">
+                    <span id="display-role" class="text-[9px] bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/40 uppercase font-bold text-indigo-300"></span>
+                </div>
+                <button onclick="logout()" class="text-red-400 hover:text-red-300 p-2 bg-red-500/10 rounded-lg transition-all">
+                    <i class="fas fa-power-off"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -26,53 +33,58 @@
     <div class="container mx-auto p-4 mt-2 md:mt-6">
         
         <section id="login-screen" class="max-w-md mx-auto py-10 md:py-20">
-            <div class="glass p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
+            <div class="glass p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-white/10">
                 <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold">Gateway</h2>
-                    <p class="text-gray-400 text-sm">Secure Institutional Access</p>
+                    <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shield-alt text-2xl text-indigo-400"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold tracking-tight">Gateway</h2>
+                    <p class="text-gray-400 text-sm">Elite Institutional Access</p>
                 </div>
                 <div class="space-y-4">
                     <div class="relative">
-                        <i class="fas fa-user-shield absolute left-4 top-4 text-gray-500"></i>
-                        <select id="role-select" class="pl-12">
-                            <option value="student">Student Login</option>
-                            <option value="teacher">Teacher Login</option>
-                            <option value="hoi">HOI Login</option>
+                        <i class="fas fa-user-tag absolute left-4 top-4 text-gray-500"></i>
+                        <select id="role-select" class="pl-12 appearance-none">
+                            <option value="student">Student Portal</option>
+                            <option value="teacher">Teacher Portal</option>
+                            <option value="hoi">HOI Dashboard</option>
                             <option value="superadmin">Super Admin</option>
                         </select>
                     </div>
                     <input type="text" id="user-field" placeholder="Username" class="w-full">
                     <input type="password" id="pass-field" placeholder="Password" class="w-full">
-                    <button onclick="handleLogin()" class="w-full btn-glow p-4 rounded-xl font-bold uppercase tracking-widest">Authorize Access</button>
+                    <button onclick="handleLogin()" class="w-full btn-glow p-4 rounded-xl font-bold uppercase tracking-widest mt-2">Authorize</button>
                 </div>
             </div>
         </section>
 
         <section id="main-dashboard" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
             
-            <aside class="lg:col-span-1 space-y-3">
-                <div id="sidebar-menu" class="space-y-2 sticky top-24">
+            <aside class="lg:col-span-1">
+                <div id="sidebar-menu" class="sticky top-24 space-y-2">
                     </div>
             </aside>
 
             <main class="lg:col-span-3 pb-20">
                 
-                <div id="panel-superadmin" class="panel hidden space-y-6">
-                   <div class="glass p-6 md:p-8 rounded-[2rem] mt-6">
-    <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-        <i class="fas fa-school text-indigo-400"></i> Institutional Registry
-    </h3>
-    <div class="flex flex-col md:flex-row gap-3 mb-8">
-        <input type="text" id="school-name" placeholder="School Name (e.g., BMS Wagoora)" class="flex-1">
-        <input type="text" id="school-location" placeholder="Location" class="md:w-1/3">
-        <button onclick="registerNewSchool()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl transition font-bold">Register</button>
-    </div>
-    <div id="school-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        </div>
-                   </div>
-                    <div class="glass p-6 md:p-8 rounded-[2rem]">
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <i class="fas fa-globe text-indigo-400"></i> Global Subject Registry
+                <div id="panel-superadmin" class="panel hidden space-y-8">
+                    <div class="glass p-6 md:p-8 rounded-[2rem] border border-white/5">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                            <i class="fas fa-university text-indigo-400"></i> Institutional Registry
+                        </h3>
+                        <div class="flex flex-col md:flex-row gap-3 mb-8">
+                            <input type="text" id="school-name" placeholder="School Name" class="flex-1">
+                            <input type="text" id="school-location" placeholder="Location" class="md:w-1/3">
+                            <button onclick="registerNewSchool()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl transition font-bold shadow-lg shadow-indigo-600/20">Register</button>
+                        </div>
+                        <div id="school-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                            <p class="col-span-full py-10 opacity-30 italic">No schools registered yet.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 md:p-8 rounded-[2rem] border border-white/5">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                            <i class="fas fa-book-atlas text-indigo-400"></i> Global Subject Registry
                         </h3>
                         <div class="flex flex-col md:flex-row gap-3 mb-8">
                             <input type="text" id="sub-name" placeholder="Subject Name" class="flex-1">
@@ -83,18 +95,20 @@
                                 <option>Secondary</option>
                                 <option>Higher Secondary</option>
                             </select>
-                            <button onclick="addGlobalSubject()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl transition font-bold">Add</button>
+                            <button onclick="addGlobalSubject()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl transition font-bold shadow-lg shadow-indigo-600/20">Add</button>
                         </div>
                         <div id="subject-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="h-12 bg-white/5 rounded-xl animate-pulse"></div>
-                            <div class="h-12 bg-white/5 rounded-xl animate-pulse"></div>
+                            <div class="h-14 bg-white/5 rounded-2xl animate-pulse"></div>
+                            <div class="h-14 bg-white/5 rounded-2xl animate-pulse"></div>
                         </div>
                     </div>
                 </div>
 
                 <div id="panel-hoi" class="panel hidden space-y-6">
                     <div class="glass p-6 md:p-8 rounded-[2rem]">
-                        <h3 class="text-xl font-bold mb-6">Staff Orchestration</h3>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i class="fas fa-user-plus text-indigo-400"></i> Staff Orchestration
+                        </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <input type="text" id="t-user" placeholder="Teacher Username">
                             <select id="t-subject-select" class="w-full"></select>
@@ -103,57 +117,9 @@
                     </div>
                 </div>
 
-                <div id="panel-teacher" class="panel hidden space-y-6">
-                    <div class="glass p-6 md:p-8 rounded-[2rem]">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                            <h3 class="text-xl font-bold">Quiz Engineering</h3>
-                            <span class="bg-indigo-500/20 text-indigo-400 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/30">
-                                Assigned: <span id="active-subject-display" class="text-white">Not Set</span>
-                            </span>
-                        </div>
-                        
-                        <textarea id="q-text" class="w-full mb-6 min-h-[120px]" placeholder="Construct your question here..."></textarea>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div class="relative"><span class="absolute left-4 top-4 text-xs font-bold text-gray-500">A</span><input type="text" id="opt-0" class="pl-10 w-full" placeholder="Option 1"></div>
-                            <div class="relative"><span class="absolute left-4 top-4 text-xs font-bold text-gray-500">B</span><input type="text" id="opt-1" class="pl-10 w-full" placeholder="Option 2"></div>
-                            <div class="relative"><span class="absolute left-4 top-4 text-xs font-bold text-gray-500">C</span><input type="text" id="opt-2" class="pl-10 w-full" placeholder="Option 3"></div>
-                            <div class="relative"><span class="absolute left-4 top-4 text-xs font-bold text-gray-500">D</span><input type="text" id="opt-3" class="pl-10 w-full" placeholder="Option 4"></div>
-                        </div>
+                <div id="panel-teacher" class="panel hidden space-
 
-                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 mb-6">
-                            <label class="text-[10px] text-gray-400 block mb-3 uppercase font-black tracking-widest">Verify Correct Response</label>
-                            <select id="correct-opt" class="w-full">
-                                <option value="0">Response A</option>
-                                <option value="1">Response B</option>
-                                <option value="2">Response C</option>
-                                <option value="3">Response D</option>
-                            </select>
-                        </div>
-                        <button onclick="uploadQuiz()" class="btn-glow w-full p-4 rounded-xl font-bold uppercase tracking-widest">Publish Assignment</button>
-                    </div>
-                </div>
 
-                <div id="panel-student" class="panel hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="glass p-6 rounded-[2rem] flex flex-col items-center justify-center border-b-4 border-yellow-500/20">
-                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Rewards</span>
-                            <div class="text-4xl font-black text-yellow-500">💰 <span id="student-coins">0</span></div>
-                        </div>
-                        <div class="md:col-span-2 glass p-6 md:p-8 rounded-[2rem] min-h-[400px]">
-                            <div id="quiz-area" class="h-full flex flex-col justify-center">
-                                </div>
-                        </div>
-                    </div>
-                </div>
 
-            </main>
-        </section>
-    </div>
-
-    <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full z-[-1]"></div>
-    <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full z-[-1]"></div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+                    
+                
