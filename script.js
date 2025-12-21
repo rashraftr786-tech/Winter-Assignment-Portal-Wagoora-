@@ -95,31 +95,7 @@ function initPortal(role, name) {
 }
 
 // --- CLOUD ENGINE ---
-function startCloudListeners() {
-    // Sync Schools
-    db.collection("schools").onSnapshot(s => {
-        state.schools = s.docs.map(d => d.data());
-        renderSchoolList();
-    });
 
-    // Sync Subjects
-    db.collection("subjects").onSnapshot(s => {
-        state.globalSubjects = s.docs.map(d => d.data());
-        updateHOISubjectDropdown(); 
-    });
-
-    // Sync HOIs (For Super Admin view)
-    db.collection("hois").onSnapshot(s => {
-        state.hois = s.docs.map(d => d.data());
-        renderHOIList();
-    });
-
-    // Sync Teachers
-    db.collection("teachers").orderBy("createdAt", "desc").onSnapshot(s => {
-        state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
-        renderTeacherList();
-    });
-}
 
 // --- CLOUD WRITE FUNCTIONS ---
 async function appointHOI() {
@@ -130,7 +106,32 @@ async function appointHOI() {
     if (user && school) {
         await db.collection("hois").add({
             username: user,
-            password: pass || "welcome@123",
+            password// --- CLOUD ENGINE (FIXED SUBJECT SYNC) ---
+function startCloudListeners() {
+    // 1. Sync Schools
+    db.collection("schools").onSnapshot(s => {
+        state.schools = s.docs.map(d => d.data());
+        renderSchoolList(); 
+    });
+
+    // 2. Sync Global Subjects & FORCE Dropdown Update
+    db.collection("subjects").onSnapshot(s => {
+        state.globalSubjects = s.docs.map(d => d.data());
+        console.log("Subjects Synced:", state.globalSubjects.length);
+        
+        // This is the critical fix:
+        updateHOISubjectDropdown(); 
+    });
+
+    // 3. Sync Teachers for the specific school
+    db.collection("teachers")
+        .where("schoolContext", "==", state.currentUser.name)
+        .onSnapshot(s => {
+            state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
+            renderTeacherList();
+        });
+}
+: pass || "welcome@123",
             schoolName: school,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
