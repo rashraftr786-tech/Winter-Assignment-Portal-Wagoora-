@@ -12,7 +12,6 @@ const firebaseConfig = {
   appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
 };
 
-// Initialize only once
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -35,12 +34,10 @@ async function handleLogin() {
 
     if (!user || !pass) return alert("Fill all fields");
 
-    // 1. Super Admin (Hardcoded)
     if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
         return initPortal('superadmin', 'System Master');
     }
 
-    // 2. HOI Check (Cloud-based)
     if (role === 'hoi') {
         try {
             const query = await db.collection("hois")
@@ -65,20 +62,21 @@ async function handleLogin() {
         return;
     }
     
-    // Default roles
     if (role === 'teacher') initPortal('teacher', user);
     if (role === 'student') initPortal('student', user);
 }
 
 function initPortal(role, name) {
     state.currentUser = { role, name };
-    
     document.getElementById('login-screen').classList.add('hidden');
     const mainDash = document.getElementById('main-dashboard');
     mainDash.classList.remove('hidden');
     mainDash.style.display = (window.innerWidth < 1024) ? 'block' : 'grid';
     
-    // Fix: Explicitly show/hide panels
+    document.getElementById('nav-info').classList.remove('hidden');
+    document.getElementById('nav-info').style.display = 'flex';
+    document.getElementById('display-role').innerText = role;
+
     document.querySelectorAll('.panel').forEach(p => {
         p.classList.add('hidden');
         p.style.display = 'none';
@@ -95,35 +93,26 @@ function initPortal(role, name) {
 }
 
 // --- CLOUD ENGINE ---
-
-
-// --- CLOUD WRITE FUNCTIONS ---
-async function appointHOI() {
-    const user = document.getElementById('hoi-username').value.trim();
-    const pass = document.getElementById('hoi-password').value.trim();
-    const school = document.getElementById('hoi-school-select').value;
-
-    if (user && school) {
-        await db.collection("hois").add({
-            username: user,
-            password// --- CLOUD ENGINE (FIXED SUBJECT SYNC) ---
 function startCloudListeners() {
-    // 1. Sync Schools
+    // 1. Schools
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
         renderSchoolList(); 
     });
 
-    // 2. Sync Global Subjects & FORCE Dropdown Update
+    // 2. Subjects
     db.collection("subjects").onSnapshot(s => {
         state.globalSubjects = s.docs.map(d => d.data());
-        console.log("Subjects Synced:", state.globalSubjects.length);
-        
-        // This is the critical fix:
         updateHOISubjectDropdown(); 
     });
 
-    // 3. Sync Teachers for the specific school
+    // 3. HOIs
+    db.collection("hois").onSnapshot(s => {
+        state.hois = s.docs.map(d => d.data());
+        renderHOIList();
+    });
+
+    // 4. Teachers (Specific to school context)
     db.collection("teachers")
         .where("schoolContext", "==", state.currentUser.name)
         .onSnapshot(s => {
@@ -131,7 +120,38 @@ function startCloudListeners() {
             renderTeacherList();
         });
 }
-: pass || "welcome@123",
+
+// --- CLOUD WRITE FUNCTIONS ---
+async function registerNewSchool() {
+    const name = document.getElementById('school-name').value.trim();
+    const loc = document.getElementById('school-location').value.trim();
+    if (name && loc) {
+        await db.collection("schools").add({
+            name, location: loc, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('school-name').value = '';
+        document.getElementById('school-location').value = '';
+    }
+}
+
+async function addGlobalSubject() {
+    const name = document.getElementById('sub-name').value.trim();
+    const cat = document.getElementById('sub-cat').value;
+    if (name) {
+        await db.collection("subjects").add({ name, cat });
+        document.getElementById('sub-name').value = '';
+    }
+}
+
+async function appointHOI() {
+    const user = document.getElementById('hoi-username').value.trim();
+    const pass = document.getElementById('hoi-password').value ? document.getElementById('hoi-password').value.trim() : "welcome@123";
+    const school = document.getElementById('hoi-school-select').value;
+
+    if (user && school) {
+        await db.collection("hois").add({
+            username: user,
+            password: pass,
             schoolName: school,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -184,10 +204,9 @@ function updateHOISubjectDropdown() {
 function renderTeacherList() {
     const list = document.getElementById('teacher-list');
     if (!list) return;
-    const myTeachers = state.teachers.filter(t => t.schoolContext === state.currentUser.name);
-    list.innerHTML = myTeachers.map(t => `
+    list.innerHTML = state.teachers.map(t => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
-            <div><p class="font-bold text-sm">${t.name}</p><p class="text-[10px] text-indigo-400 uppercase">${t.subject}</p></div>
+            <div><p class="font-bold text-sm text-white">${t.name}</p><p class="text-[10px] text-indigo-400 uppercase">${t.subject}</p></div>
             <button onclick="removeTeacher('${t.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
         </div>
     `).join('') || '<p class="text-xs opacity-20 py-4">No staff registered.</p>';
@@ -197,7 +216,7 @@ function renderSchoolList() {
     const list = document.getElementById('school-list');
     const dropdown = document.getElementById('hoi-school-select');
     if (list) {
-        list.innerHTML = state.schools.map(s => `<div class="glass p-4 rounded-xl text-left"><p class="font-bold text-sm">${s.name}</p></div>`).join('');
+        list.innerHTML = state.schools.map(s => `<div class="glass p-4 rounded-xl text-left border border-white/5"><p class="font-bold text-sm">${s.name}</p></div>`).join('');
     }
     if (dropdown) {
         dropdown.innerHTML = '<option value="">Select School</option>' + 
@@ -207,12 +226,9 @@ function renderSchoolList() {
 
 function renderSidebar(role) {
     const sidebar = document.getElementById('sidebar-menu');
-    if (sidebar) sidebar.innerHTML = `<div class="p-4 glass rounded-2xl font-bold text-xs uppercase">${role}</div>`;
+    if (sidebar) sidebar.innerHTML = `<div class="p-4 glass rounded-2xl font-bold text-xs uppercase border-l-4 border-indigo-500">${role} Dashboard</div>`;
 }
 
 function logout() { location.reload(); }
-
-
-
 
 
