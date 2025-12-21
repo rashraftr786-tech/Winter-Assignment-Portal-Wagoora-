@@ -3,7 +3,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-tap-highlight-color: transparent; /* Fixes blue flash on mobile tap */
+    -webkit-tap-highlight-color: transparent; 
 }
 
 body {
@@ -11,97 +11,122 @@ body {
     min-height: 100vh;
     color: #f8fafc;
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    overflow-x: hidden; /* Prevents side-scrolling on small screens */
+    overflow-x: hidden;
+    line-height: 1.6;
 }
 
-/* 2. GLASS EFFECT (With Safari Support) */
+/* 2. GLASS EFFECT (Improved for Cross-Device performance) */
 .glass {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px); /* Required for iOS/Safari */
+    -webkit-backdrop-filter: blur(12px); 
     border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-/* 3. BUTTONS (Finger-Friendly) */
+/* 3. RESPONSIVE GRID LAYOUTS (The Heart of Cross-Device) */
+#main-dashboard {
+    /* Initially set via JS display: none/grid */
+    display: none; 
+    grid-template-columns: 1fr; /* Mobile: Single Column */
+    gap: 1.5rem;
+    padding-bottom: 5rem; /* Space for mobile scrolling */
+}
+
+@media (min-width: 1024px) {
+    #main-dashboard {
+        grid-template-columns: 280px 1fr !important; /* Fixed Sidebar Width on Desktop */
+        gap: 2rem;
+        padding-bottom: 2rem;
+    }
+}
+
+/* 4. DYNAMIC SIDEBAR (Stacks on Mobile, Sticks on Desktop) */
+#sidebar-menu {
+    display: flex;
+    flex-direction: row; /* Horizontal on mobile */
+    overflow-x: auto;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    scrollbar-width: none; /* Hide scrollbar for clean look */
+}
+
+#sidebar-menu::-webkit-scrollbar { display: none; }
+
+@media (min-width: 1024px) {
+    #sidebar-menu {
+        flex-direction: column; /* Vertical on Desktop */
+        position: sticky;
+        top: 100px;
+        overflow-x: visible;
+    }
+}
+
+/* 5. BUTTONS (Refined for Thumbs) */
 .btn-glow {
     background: linear-gradient(135deg, #6366f1, #a855f7);
     color: white;
     transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     border: none;
-    min-height: 48px; /* Touch target standard */
+    min-height: 52px; 
+    padding: 0 20px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.btn-glow:hover {
-    filter: brightness(1.2);
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-    transform: translateY(-1px);
-}
+.btn-glow:active { transform: scale(0.96); }
 
-.btn-glow:active {
-    transform: scale(0.98); /* Tactile feedback on mobile */
-}
-
-/* 4. FORMS & INPUTS (Preventing Auto-Zoom) */
+/* 6. FORMS (Zoom-Proof & Mobile Friendly) */
 input, select, textarea {
     background: rgba(15, 23, 42, 0.8) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: white !important;
-    padding: 14px;
-    border-radius: 12px;
+    padding: 16px;
+    border-radius: 14px;
     outline: none;
     width: 100%;
-    font-size: 16px !important; /* Forces iOS NOT to zoom in when typing */
+    font-size: 16px !important; /* Stops iOS forced zoom */
+    transition: 0.2s border-color;
 }
 
 input:focus, select:focus, textarea:focus { 
     border-color: #6366f1 !important; 
-    background: rgba(30, 41, 59, 0.9) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-/* 5. RESPONSIVE GRID LAYOUTS */
-#main-dashboard {
-    display: none; /* Controlled by JS */
-    grid-template-columns: 1fr; /* Mobile Default: Stacked */
-    gap: 1.5rem;
+/* 7. PANEL VISIBILITY */
+.panel.hidden {
+    display: none !important;
 }
 
-@media (min-width: 1024px) {
-    #main-dashboard {
-        grid-template-columns: 1fr 3fr; /* Tablet/Desktop: Sidebar + Main */
-    }
-}
-
-/* 6. PANEL ANIMATIONS */
-.panel { 
-    display: none; 
-}
-
-.panel:not(.hidden) { 
-    display: block; 
-    animation: slideUp 0.5s ease; 
+.panel:not(.hidden) {
+    display: block;
+    animation: slideUp 0.4s ease-out forwards;
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 7. QUIZ SPECIFIC STYLES */
+/* 8. STUDENT QUIZ AREA (Mobile Optimization) */
 .quiz-option-btn {
     width: 100%;
     text-align: left;
-    padding: 16px;
-    margin-bottom: 10px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.05);
-    background: rgba(255,255,255,0.02);
+    padding: 18px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
     color: white;
-    transition: 0.2s;
+    font-weight: 500;
+    cursor: pointer;
 }
 
 .quiz-option-btn:hover {
@@ -109,12 +134,9 @@ input:focus, select:focus, textarea:focus {
     border-color: #6366f1;
 }
 
-/* 8. MOBILE SCROLLING FIX */
-::-webkit-scrollbar {
-    width: 6px;
-}
+/* 9. SCROLLBARS */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb {
     background: #334155;
     border-radius: 10px;
 }
-
