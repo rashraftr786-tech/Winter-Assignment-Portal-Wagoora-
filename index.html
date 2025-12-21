@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
-<body class="antialiased overflow-x-hidden">
+<body class="antialiased overflow-x-hidden bg-[#0f172a] text-white">
 
     <nav class="glass p-4 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
@@ -20,20 +20,15 @@
                 <h1 class="font-black tracking-widest text-lg md:text-xl uppercase">Wagoora <span class="text-indigo-500 text-xs">v3.0</span></h1>
             </div>
             <div id="nav-info" class="hidden flex items-center gap-3 md:gap-6">
-                <div class="flex flex-col items-end">
-                    <span id="display-role" class="text-[9px] bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/40 uppercase font-bold text-indigo-300"></span>
-                </div>
-                <button onclick="logout()" class="text-red-400 hover:text-red-300 p-2 bg-red-500/10 rounded-lg transition-all">
-                    <i class="fas fa-power-off"></i>
-                </button>
+                <span id="display-role" class="text-[9px] bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/40 uppercase font-bold text-indigo-300"></span>
+                <button onclick="logout()" class="text-red-400 p-2 bg-red-500/10 rounded-lg"><i class="fas fa-power-off"></i></button>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 mt-2 md:mt-6">
-        
-        <section id="login-screen" class="max-w-md mx-auto py-10 md:py-20">
-            <div class="glass p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-white/10">
+    <div class="container mx-auto p-4 mt-6">
+        <section id="login-screen" class="max-w-md mx-auto py-10">
+            <div class="glass p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
                 <div class="text-center mb-8">
                     <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-shield-alt text-2xl text-indigo-400"></i>
@@ -42,84 +37,86 @@
                     <p class="text-gray-400 text-sm">Elite Institutional Access</p>
                 </div>
                 <div class="space-y-4">
-                    <div class="relative">
-                        <i class="fas fa-user-tag absolute left-4 top-4 text-gray-500"></i>
-                        <select id="role-select" class="pl-12 appearance-none">
-                            <option value="student">Student Portal</option>
-                            <option value="teacher">Teacher Portal</option>
-                            <option value="hoi">HOI Dashboard</option>
-                            <option value="superadmin">Super Admin</option>
-                        </select>
-                    </div>
-                    <input type="text" id="user-field" placeholder="Username" class="w-full">
-                    <input type="password" id="pass-field" placeholder="Password" class="w-full">
-                    <button onclick="handleLogin()" class="w-full btn-glow p-4 rounded-xl font-bold uppercase tracking-widest mt-2">Authorize</button>
+                    <select id="role-select" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white">
+                        <option value="student">Student Portal</option>
+                        <option value="teacher">Teacher Portal</option>
+                        <option value="hoi">HOI Dashboard</option>
+                        <option value="superadmin">Super Admin</option>
+                    </select>
+                    <input type="text" id="user-field" placeholder="Username" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white">
+                    <input type="password" id="pass-field" placeholder="Password" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white">
+                    <button onclick="handleLogin()" class="w-full bg-indigo-600 p-4 rounded-xl font-bold uppercase tracking-widest hover:bg-indigo-500 transition-all">Authorize</button>
                 </div>
             </div>
         </section>
 
-        <section id="main-dashboard" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-            
+        <section id="main-dashboard" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
             <aside class="lg:col-span-1">
-                <div id="sidebar-menu" class="sticky top-24 space-y-2">
-                    </div>
+                <div id="sidebar-menu" class="sticky top-24 space-y-2"></div>
             </aside>
 
             <main class="lg:col-span-3 pb-20">
-                
                 <div id="panel-superadmin" class="panel hidden space-y-8">
-                    <div class="glass p-6 md:p-8 rounded-[2rem] border border-white/5">
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
-                            <i class="fas fa-university text-indigo-400"></i> Institutional Registry
-                        </h3>
+                    <div class="glass p-8 rounded-[2rem] border border-white/5">
+                        <h3 class="text-xl font-bold mb-6"><i class="fas fa-university mr-2 text-indigo-400"></i> Institutional Registry</h3>
                         <div class="flex flex-col md:flex-row gap-3 mb-8">
-                            <input type="text" id="school-name" placeholder="School Name" class="flex-1">
-                            <input type="text" id="school-location" placeholder="Location" class="md:w-1/3">
-                            <button onclick="registerNewSchool()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl transition font-bold shadow-lg shadow-indigo-600/20">Register</button>
+                            <input type="text" id="school-name" placeholder="School Name" class="flex-1 p-3 bg-white/5 border border-white/10 rounded-xl">
+                            <input type="text" id="school-location" placeholder="Location" class="md:w-1/3 p-3 bg-white/5 border border-white/10 rounded-xl">
+                            <button onclick="registerNewSchool()" class="bg-indigo-600 px-8 py-3 rounded-xl font-bold">Register</button>
                         </div>
-                        <div id="school-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-                            <p class="col-span-full py-10 opacity-30 italic">No schools registered yet.</p>
-                        </div>
+                        <div id="school-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                     </div>
 
-                    <div class="glass p-6 md:p-8 rounded-[2rem] border border-white/5">
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
-                            <i class="fas fa-book-atlas text-indigo-400"></i> Global Subject Registry
-                        </h3>
+                    <div class="glass p-8 rounded-[2rem] border border-white/5">
+                        <h3 class="text-xl font-bold mb-6"><i class="fas fa-book-atlas mr-2 text-indigo-400"></i> Global Subject Registry</h3>
                         <div class="flex flex-col md:flex-row gap-3 mb-8">
-                            <input type="text" id="sub-name" placeholder="Subject Name" class="flex-1">
-                            <select id="sub-cat" class="md:w-1/3">
-                                <option>Foundational</option>
-                                <option>Primary</option>
-                                <option>Middle</option>
-                                <option>Secondary</option>
-                                <option>Higher Secondary</option>
+                            <input type="text" id="sub-name" placeholder="Subject Name" class="flex-1 p-3 bg-white/5 border border-white/10 rounded-xl">
+                            <select id="sub-cat" class="md:w-1/3 p-3 bg-white/5 border border-white/10 rounded-xl">
+                                <option>Foundational</option><option>Primary</option><option>Middle</option><option>Secondary</option>
                             </select>
-                            <button onclick="addGlobalSubject()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl transition font-bold shadow-lg shadow-indigo-600/20">Add</button>
+                            <button onclick="addGlobalSubject()" class="bg-indigo-600 px-8 py-3 rounded-xl font-bold">Add</button>
                         </div>
-                        <div id="subject-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="h-14 bg-white/5 rounded-2xl animate-pulse"></div>
-                            <div class="h-14 bg-white/5 rounded-2xl animate-pulse"></div>
-                        </div>
+                        <div id="subject-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                     </div>
                 </div>
 
                 <div id="panel-hoi" class="panel hidden space-y-6">
-                    <div class="glass p-6 md:p-8 rounded-[2rem]">
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <i class="fas fa-user-plus text-indigo-400"></i> Staff Orchestration
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <input type="text" id="t-user" placeholder="Teacher Username">
-                            <select id="t-subject-select" class="w-full"></select>
-                        </div>
-                        <button onclick="registerTeacher()" class="btn-glow w-full p-4 rounded-xl font-bold">Deploy Teacher Account</button>
+                    <div class="glass p-8 rounded-[2rem]">
+                        <h3 class="text-xl font-bold mb-6"><i class="fas fa-user-plus mr-2 text-indigo-400"></i> Staff Orchestration</h3>
+                        <p class="text-gray-400 mb-4 italic">HOI can manage school-specific teachers here.</p>
+                        <div id="hoi-subject-display" class="grid grid-cols-1 gap-4"></div>
                     </div>
                 </div>
 
-                <div id="panel-teacher" class="panel hidden space-
+                <div id="panel-teacher" class="panel hidden space-y-6">
+                    <div class="glass p-8 rounded-[2rem]">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold">Teacher Workspace</h3>
+                            <span id="active-subject-display" class="bg-indigo-500/20 px-4 py-1 rounded-full text-indigo-400 text-sm"></span>
+                        </div>
+                        <div class="bg-white/5 p-6 rounded-2xl border border-dashed border-white/10 text-center">
+                            <i class="fas fa-cloud-upload-alt text-3xl mb-3 text-indigo-400"></i>
+                            <p>Quiz Creation Module coming soon to Cloud Storage.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-student" class="panel hidden space-y-6">
+                    <div class="flex justify-etween items-center bg-indigo-600 p-6 rounded-[2rem] shadow-xl">
+                        <div>
+                            <p class="text-xs uppercase font-black opacity-60">Learning Credits</p>
+                            <h2 class="text-3xl font-black"><i class="fas fa-coins text-yellow-400 mr-2"></i><span id="student-coins">0</span></h2>
+                        </div>
+                        <i class="fas fa-graduation-cap text-4xl opacity-20"></i>
+                    </div>
+                </div>
+            </main>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
 
 
 
-                    
-                
