@@ -123,12 +123,23 @@
                 
 
                 <div id="panel-hoi" class="panel hidden space-y-6">
-                    <div class="glass p-8 rounded-[2rem]">
-                        <h3 class="text-xl font-bold mb-6"><i class="fas fa-user-plus mr-2 text-indigo-400"></i> Staff Orchestration</h3>
-                        <p class="text-gray-400 mb-4 italic">HOI can manage school-specific teachers here.</p>
-                        <div id="hoi-subject-display" class="grid grid-cols-1 gap-4"></div>
-                    </div>
-                </div>
+    <div class="glass p-8 rounded-[2rem] border border-white/5">
+        <h3 class="text-xl font-bold mb-6"><i class="fas fa-user-plus mr-2 text-indigo-400"></i> Staff Orchestration</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+            <input type="text" id="t-name" placeholder="Teacher Name" class="p-3 bg-white/5 border border-white/10 rounded-xl text-sm">
+            <select id="t-subject" class="p-3 bg-white/5 border border-white/10 rounded-xl text-sm bg-[#1e293b]">
+                <option value="">Select Subject</option>
+            </select>
+            <button onclick="addTeacher()" class="bg-indigo-600 p-3 rounded-xl font-bold hover:bg-indigo-500 transition-all">Add Teacher</button>
+        </div>
+
+        <div class="p-4 text-[10px] text-gray-500 uppercase font-bold tracking-widest border-b border-white/5 mb-4">Active Faculty</div>
+        <div id="teacher-list" class="space-y-3">
+            </div>
+    </div>
+</div>
+
 
                 <div id="panel-teacher" class="panel hidden space-y-6">
                     <div class="glass p-8 rounded-[2rem]">
