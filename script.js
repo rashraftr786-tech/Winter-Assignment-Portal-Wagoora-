@@ -101,10 +101,21 @@ function startCloudListeners() {
         renderSchoolList(); 
     });
 
+    function startCloudListeners() {
+    // ... other listeners ...
+
+    // Sync Subjects
     db.collection("subjects").onSnapshot(s => {
         state.globalSubjects = s.docs.map(d => d.data());
+        console.log("Subjects received from cloud:", state.globalSubjects); // Debug check
+        
+        // This must run every time data changes
         updateHOISubjectDropdown(); 
     });
+
+    // ... other listeners ...
+}
+
 
     db.collection("hois").onSnapshot(s => {
         state.hois = s.docs.map(d => d.data());
