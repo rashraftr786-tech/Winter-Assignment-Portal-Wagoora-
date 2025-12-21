@@ -146,6 +146,7 @@ async function addGlobalSubject() {
 // --- UI RENDERERS ---
 function renderSchoolList() {
     const list = document.getElementById('school-list');
+    const dropdown = document.getElementById('hoi-school-select'); // New reference
     if (!list) return;
 
     if (state.schools.length === 0) {
@@ -153,6 +154,7 @@ function renderSchoolList() {
         return;
     }
 
+    // Update the visual list
     list.innerHTML = state.schools.map(s => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 animate-fadeIn">
             <div class="text-left">
@@ -162,6 +164,12 @@ function renderSchoolList() {
             <i class="fas fa-cloud text-indigo-500/30"></i>
         </div>
     `).join('');
+
+    // Update the HOI dropdown
+    if (dropdown) {
+        dropdown.innerHTML = '<option value="">Select School</option>' + 
+            state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    }
 }
 
 function renderSubjectList() {
