@@ -1,5 +1,5 @@
 /**
- * WAGOORA V3.0 - CLOUD CORE (COMPLETE UPDATE)
+ * WAGOORA V3.0 - CLOUD CORE (HOI & TEACHER UPDATE)
  */
 
 // 1. FIREBASE CONFIGURATION
@@ -21,6 +21,7 @@ let state = {
     globalSubjects: [], 
     schools: [],        
     hois: [],
+    teachers: [],
     studentProgress: {
         coins: parseInt(localStorage.getItem('wagoora_coins')) || 0
     }
@@ -53,7 +54,6 @@ function initPortal(role, name, subject = null) {
     document.getElementById('login-screen').classList.add('hidden');
     const mainDash = document.getElementById('main-dashboard');
     
-    // UI Layout Fix
     mainDash.classList.remove('hidden');
     mainDash.style.display = (window.innerWidth < 1024) ? 'block' : 'grid';
     
@@ -73,7 +73,7 @@ function initPortal(role, name, subject = null) {
     }
 
     renderSidebar(role);
-    startCloudListeners(); // Start real-time sync
+    startCloudListeners(); //
 
     if (role === 'teacher') document.getElementById('active-subject-display').innerText = subject;
     if (role === 'student') updateCoinDisplay();
@@ -84,19 +84,26 @@ function startCloudListeners() {
     // A. Watch Schools
     db.collection("schools").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         state.schools = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderSchoolList(); // This also updates the HOI Dropdown
+        renderSchoolList();
     });
 
     // B. Watch Subjects
     db.collection("subjects").orderBy("name").onSnapshot((snapshot) => {
         state.globalSubjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderSubjectList();
+        updateHOISubjectDropdown(); // Keep HOI dropdown synced
     });
 
-    // C. Watch HOI Appointments
+    // C. Watch HOIs
     db.collection("hois").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         state.hois = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderHOIList();
+    });
+
+    // D. Watch Teachers (Live for HOI)
+    db.collection("teachers").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        state.teachers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderTeacherList();
     });
 }
 
@@ -132,8 +139,26 @@ async function appointHOI() {
         });
         document.getElementById('hoi-username').value = '';
         alert("HOI Appointed!");
-    } else {
-        alert("Please fill all HOI fields");
+    }
+}
+
+// NEW: HOI Teacher Management
+async function addTeacher() {
+    const name = document.getElementById('t-name').value.trim();
+    const subject = document.getElementById('t-subject').value;
+    if (name && subject) {
+        await db.collection("teachers").add({
+            name, subject, schoolContext: state.currentUser.name,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('t-name').value = '';
+        alert("Teacher Added to Cloud!");
+    }
+}
+
+async function removeTeacher(id) {
+    if(confirm("Confirm removal from Cloud?")) {
+        await db.collection("teachers").doc(id).delete(); //
     }
 }
 
@@ -148,20 +173,40 @@ function renderSchoolList() {
             <div class="text-left"><p class="font-bold text-sm">${s.name}</p><p class="text-[10px] text-indigo-300 uppercase">${s.location}</p></div>
             <i class="fas fa-cloud text-indigo-500/30"></i>
         </div>
-    `).join('') || '<p class="col-span-full opacity-30 italic py-10">No schools found.</p>';
+    `).join('') || '<p class="col-span-full opacity-30 italic py-10 text-center text-xs">Waiting for registry...</p>';
 
-    // Update the HOI selection dropdown
     if (dropdown) {
         dropdown.innerHTML = '<option value="">Select School</option>' + 
             state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
     }
 }
 
+function updateHOISubjectDropdown() {
+    const select = document.getElementById('t-subject');
+    if (select) {
+        select.innerHTML = '<option value="">Select Subject</option>' + 
+            state.globalSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    }
+}
+
+function renderTeacherList() {
+    const list = document.getElementById('teacher-list');
+    if (!list) return;
+    list.innerHTML = state.teachers.map(t => `
+        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 animate-fadeIn">
+            <div><p class="font-bold text-sm text-white">${t.name}</p><p class="text-[10px] text-indigo-400 uppercase font-black">${t.subject}</p></div>
+            <button onclick="removeTeacher('${t.id}')" class="text-red-400 p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    `).join('') || '<p class="text-center opacity-20 py-4 text-xs">No teachers deployed.</p>';
+}
+
 function renderHOIList() {
     const list = document.getElementById('hoi-list');
     if (!list) return;
     list.innerHTML = state.hois.map(h => `
-        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 animate-fadeIn">
+        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
             <div><p class="font-bold text-sm text-white">${h.username}</p><p class="text-[10px] text-indigo-400 uppercase font-black">${h.schoolName}</p></div>
             <i class="fas fa-user-check text-green-500/40"></i>
         </div>
@@ -181,12 +226,9 @@ function renderSubjectList() {
 
 function renderSidebar(role) {
     const sidebar = document.getElementById('sidebar-menu');
-    if (role === 'superadmin') {
-        sidebar.innerHTML = `<button class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
-            <i class="fas fa-layer-group mr-2"></i> Cloud Overview</button>`;
-    } else {
-        sidebar.innerHTML = `<div class="glass p-4 rounded-2xl text-xs uppercase opacity-50 font-bold">Standard Access</div>`;
-    }
+    if (!sidebar) return;
+    sidebar.innerHTML = `<div class="glass p-4 rounded-2xl text-xs uppercase opacity-50 font-bold border-l-4 border-indigo-500">
+        ${role} DASHBOARD</div>`;
 }
 
 function updateCoinDisplay() {
@@ -195,5 +237,5 @@ function updateCoinDisplay() {
 }
 
 function logout() {
-    if(confirm("Logout?")) location.reload();
+    if(confirm("Exit Wagoora Cloud?")) location.reload();
 }
