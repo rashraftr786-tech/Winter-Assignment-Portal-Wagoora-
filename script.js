@@ -1,6 +1,6 @@
 /**
  * WAGOORA V3.0 - CORE LOGIC
- * Fixes: Panel visibility, Sidebar Injection, Subject Rendering
+ * Fixes: Active Schools Module, Register Functionality, Sidebar Navigation
  */
 
 let state = {
@@ -49,30 +49,33 @@ function handleLogin() {
         } else { alert("Teacher account not found."); }
     } 
     else if (role === 'student') {
-        initPortal('student', user, "English"); // Default for demo
+        initPortal('student', user, "English"); 
     }
 }
 
 function initPortal(role, name, subject = null) {
     state.currentUser = { role, name, subject };
     
-    // Hide Login & Show Dashboard
     document.getElementById('login-screen').classList.add('hidden');
     const mainDash = document.getElementById('main-dashboard');
     mainDash.classList.remove('hidden');
-    mainDash.style.display = 'grid'; // Force grid display for responsiveness
+    mainDash.style.display = 'grid'; 
     
     document.getElementById('nav-info').classList.remove('hidden');
     document.getElementById('display-role').innerText = role;
     
-    // Hide all panels, then show the specific one
     document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
     const activePanel = document.getElementById('panel-' + role);
     if (activePanel) activePanel.classList.remove('hidden');
 
-    // Load dynamic content
     renderSidebar(role);
-    if (role === 'superadmin') renderSubjectList();
+    
+    // Logic for Super Admin to load both lists immediately
+    if (role === 'superadmin') {
+        renderSubjectList();
+        renderSchoolList();
+    }
+    
     if (role === 'teacher') document.getElementById('active-subject-display').innerText = subject;
     if (role === 'hoi') populateHOISubjects();
     if (role === 'student') {
@@ -87,12 +90,13 @@ function renderSidebar(role) {
     let menuHTML = '';
 
     if (role === 'superadmin') {
+        // Removed the alert and added a scrolling click action
         menuHTML = `
-            <button class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="w-full text-left p-4 glass rounded-2xl mb-2 text-indigo-400 font-bold border-l-4 border-indigo-500">
                 <i class="fas fa-layer-group mr-2"></i> Subjects
             </button>
-            <button onclick="alert('Module coming soon')" class="w-full text-left p-4 glass rounded-2xl opacity-50">
-                <i class="fas fa-school mr-2"></i> Schools
+            <button onclick="document.getElementById('school-name').scrollIntoView({behavior: 'smooth'})" class="w-full text-left p-4 glass rounded-2xl text-white font-bold hover:bg-white/10 transition">
+                <i class="fas fa-school mr-2 text-indigo-400"></i> Schools Registry
             </button>`;
     } else if (role === 'student') {
         menuHTML = `
@@ -104,13 +108,55 @@ function renderSidebar(role) {
     sidebar.innerHTML = menuHTML;
 }
 
+// --- SCHOOLS MODULE LOGIC ---
+function registerNewSchool() {
+    const nameInput = document.getElementById('school-name');
+    const locInput = document.getElementById('school-location');
+    
+    const name = nameInput.value.trim();
+    const loc = locInput.value.trim();
+
+    if (name && loc) {
+        state.schools.push({ name, location: loc, id: Date.now() });
+        renderSchoolList(); // Refresh list immediately
+        
+        // Reset Inputs
+        nameInput.value = '';
+        locInput.value = '';
+        alert(`${name} registered successfully!`);
+    } else {
+        alert("Please provide both Name and Location.");
+    }
+}
+
+function renderSchoolList() {
+    const list = document.getElementById('school-list');
+    if (!list) return;
+
+    if (state.schools.length === 0) {
+        list.innerHTML = `<div class="col-span-full py-8 text-center opacity-40">No schools in the network yet.</div>`;
+        return;
+    }
+
+    list.innerHTML = state.schools.map(s => `
+        <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 hover:border-indigo-500/30 transition animate-fadeIn">
+            <div>
+                <p class="font-bold text-sm text-white">${s.name}</p>
+                <p class="text-[10px] text-indigo-300 uppercase tracking-widest">${s.location}</p>
+            </div>
+            <i class="fas fa-university text-indigo-500/50"></i>
+        </div>
+    `).join('');
+}
+
+// --- SUBJECTS MODULE LOGIC ---
 function renderSubjectList() {
     const list = document.getElementById('subject-list');
     if (!list) return;
     list.innerHTML = state.globalSubjects.map(s => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5 hover:border-indigo-500/30 transition">
             <div>
-                <p class="font-bold text-sm">${s.name}</p>
+                <p class="font-bold text-sm text-white">${s.name}</p>
                 <p class="text-[10px] text-gray-500 uppercase">${s.cat}</p>
             </div>
             <i class="fas fa-check-circle text-indigo-500"></i>
@@ -118,7 +164,6 @@ function renderSubjectList() {
     `).join('');
 }
 
-// --- FUNCTIONAL LOGIC ---
 function addGlobalSubject() {
     const name = document.getElementById('sub-name').value;
     const cat = document.getElementById('sub-cat').value;
@@ -129,6 +174,7 @@ function addGlobalSubject() {
     }
 }
 
+// --- HOI & TEACHER LOGIC ---
 function populateHOISubjects() {
     const select = document.getElementById('t-subject-select');
     if (select) {
