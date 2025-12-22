@@ -1,9 +1,4 @@
-/**
- * WAGOORA V3.0 - COMPREHENSIVE SECURE CORE
- * Optimized for Android / Chrome Mobile
- */
-
-// 1. FIREBASE CONFIGURATION
+/** WAGOORA v3.0 CORE - COMPREHENSIVE */
 const firebaseConfig = {
   apiKey: "AIzaSyBcRfUj9N_9LaVuEuIT7d0ueJ88heyP9hI",
   authDomain: "wagoora-edu-portal.firebaseapp.com",
@@ -13,11 +8,9 @@ const firebaseConfig = {
   appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
 };
 
-// Initialize Firebase
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
-// 2. GLOBAL STATE
 let state = {
     currentUser: null,
     localSubjects: [
@@ -29,25 +22,20 @@ let state = {
         { name: "Science", cat: "Middle" },
         { name: "Social Studies", cat: "Middle" }
     ],
-    cloudSubjects: [], 
-    globalSubjects: [], 
-    schools: [], hois: [], teachers: []
+    cloudSubjects: [], globalSubjects: [], schools: [], teachers: []
 };
 
-// --- AUTHENTICATION SYSTEM ---
+// --- AUTHENTICATION ---
 async function handleLogin() {
     const role = document.getElementById('role-select').value;
     const user = document.getElementById('user-field').value.trim();
     const pass = document.getElementById('pass-field').value.trim();
 
-    if (!user || !pass) return alert("Please fill all fields");
+    if (!user || !pass) return alert("Fill all fields");
 
     try {
-        if (role === 'superadmin') {
-            if (user === 'admin' && pass === 'super123') {
-                showPortal('superadmin', 'System Master', 'All Systems');
-            } else { alert("Invalid Admin Password"); }
-            return;
+        if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
+            return showPortal('superadmin', 'System Master', 'All Systems');
         }
 
         const colMap = { 'hoi': 'hois', 'teacher': 'teachers', 'student': 'students' };
@@ -55,48 +43,35 @@ async function handleLogin() {
 
         if (!snap.empty) {
             const data = snap.docs[0].data();
-            const dbPass = data.password || "12345";
-            if (pass === dbPass) {
-                const context = data.schoolName || data.schoolContext || "General";
-                showPortal(role, user, context);
-            } else { alert("Incorrect Password"); }
-        } else { alert("User not registered in " + role + " portal"); }
-    } catch (e) { alert("Auth Error: " + e.message); }
+            if (pass === (data.password || "12345")) {
+                showPortal(role, user, data.schoolName || data.schoolContext || "General");
+            } else { alert("Wrong Password"); }
+        } else { alert("User Not Found"); }
+    } catch (e) { alert("Error: " + e.message); }
 }
 
 function showPortal(role, displayName, schoolName) {
-    state.currentUser = { role: role, name: displayName, school: schoolName };
+    state.currentUser = { role, name: displayName, school: schoolName };
 
-    // FORCE UI TRANSITION FOR ANDROID
     document.getElementById('login-screen').style.setProperty("display", "none", "important");
-    const dash = document.getElementById('main-dashboard');
-    dash.classList.remove('hidden');
-    dash.style.setProperty("display", "block", "important");
-    
-    document.getElementById('nav-info').classList.remove('hidden');
+    document.getElementById('main-dashboard').style.setProperty("display", "block", "important");
     document.getElementById('nav-info').style.setProperty("display", "flex", "important");
-    document.getElementById('display-role').innerText = role.toUpperCase() + " | " + schoolName;
+    document.getElementById('display-role').innerText = role + " | " + schoolName;
 
-    // Show correct panel
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-    const target = document.getElementById('panel-' + role);
-    if (target) {
-        target.classList.remove('hidden');
-        target.style.setProperty("display", "block", "important");
-    }
+    document.getElementById('panel-' + role).style.setProperty("display", "block", "important");
 
-    if (role === 'student') {
-        document.getElementById('student-school-display').innerText = schoolName;
-    }
-
+    if (role === 'student') document.getElementById('student-school-display').innerText = schoolName;
     startCloudListeners();
 }
 
-// --- CLOUD LISTENERS ---
+// --- CLOUD ENGINE ---
 function startCloudListeners() {
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
-        renderSchoolDropdowns();
+        const drop = document.getElementById('hoi-school-select');
+        if (drop) drop.innerHTML = '<option value="">Select School</option>' + 
+            state.schools.map(sc => `<option value="${sc.name}">${sc.name}</option>`).join('');
     });
 
     db.collection("subjects").onSnapshot(s => {
@@ -106,34 +81,91 @@ function startCloudListeners() {
     });
 
     if (state.currentUser.role === 'hoi') {
-        db.collection("teachers")
-            .where("schoolContext", "==", state.currentUser.school)
-            .onSnapshot(s => {
-                state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
-                renderTeacherList();
-            });
+        db.collection("teachers").where("schoolContext", "==", state.currentUser.school).onSnapshot(s => {
+            state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
+            document.getElementById('teacher-list').innerHTML = state.teachers.map(t => `
+                <div class="glass p-4 flex justify-between items-center">
+                    <span>${t.username} (${t.subject})</span>
+                    <button onclick="deleteTeacher('${t.id}')" class="bg-red-500/20 text-red-400 p-2 rounded-lg">X</button>
+                </div>`).join('') || "No faculty registered.";
+        });
     }
 
     if (state.currentUser.role === 'student') {
-        db.collection("quizzes")
-            .where("school", "==", state.currentUser.school)
-            .onSnapshot(s => {
-                renderQuizFeed(s.docs.map(d => ({id: d.id, ...d.data()})));
-            });
+        db.collection("quizzes").where("school", "==", state.currentUser.school).onSnapshot(s => {
+            document.getElementById('quiz-feed').innerHTML = s.docs.map(d => {
+                const q = d.data();
+                return `<div class="glass p-6 quiz-card">
+                    <p class="text-[10px] text-indigo-400 font-bold mb-1">${q.teacher}</p>
+                    <h4 class="font-bold mb-2">${q.title}</h4>
+                    <p class="text-sm opacity-80 mb-4">${q.question}</p>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button class="bg-white/5 p-3 rounded-xl text-left text-xs">${q.options.A}</button>
+                        <button class="bg-white/5 p-3 rounded-xl text-left text-xs">${q.options.B}</button>
+                    </div>
+                </div>`;
+            }).join('') || "No active quizzes.";
+        });
     }
 }
 
-// --- SUPER ADMIN FUNCTIONS ---
+// --- CORE ACTIONS ---
 async function registerNewSchool() {
     const name = document.getElementById('school-name').value.trim();
     const loc = document.getElementById('school-location').value.trim();
-    if (!name || !loc) return alert("Fill all school fields");
+    if (name && loc) {
+        await db.collection("schools").add({name, location: loc});
+        alert("School Added!");
+    }
+}
 
-    try {
-        await db.collection("schools").add({
-            name: name, location: loc, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById('school-name').value = '';
+async function appointHOI() {
+    const username = document.getElementById('hoi-username').value.trim();
+    const schoolName = document.getElementById('hoi-school-select').value;
+    if (username && schoolName) {
+        await db.collection("hois").add({username, schoolName, password: "welcome@123"});
+        alert("HOI Appointed!");
+    }
+}
+
+async function addGlobalSubject() {
+    const name = document.getElementById('sub-name').value.trim();
+    const cat = document.getElementById('sub-cat').value;
+    if (name) { await db.collection("subjects").add({name, cat}); alert("Subject Added!"); }
+}
+
+async function addTeacher() {
+    const username = document.getElementById('t-name').value.trim();
+    const subject = document.getElementById('t-subject').value;
+    if (username && subject) {
+        await db.collection("teachers").add({username, subject, password: "12345", schoolContext: state.currentUser.school});
+        alert("Teacher Added!");
+    }
+}
+
+async function postQuiz() {
+    const title = document.getElementById('quiz-title').value;
+    const question = document.getElementById('quiz-question').value;
+    const options = { A: document.getElementById('opt-a').value, B: document.getElementById('opt-b').value, C: document.getElementById('opt-c').value, D: document.getElementById('opt-d').value };
+    if (title && question && options.A) {
+        await db.collection("quizzes").add({ title, question, options, teacher: state.currentUser.name, school: state.currentUser.school });
+        alert("Quiz Posted!");
+    }
+}
+
+function renderSubjectDropdown() {
+    const sel = document.getElementById('t-subject');
+    if (!sel || !state.currentUser) return;
+    const sch = state.currentUser.school.toLowerCase();
+    const filtered = state.globalSubjects.filter(s => {
+        if (sch.includes("primary")) return ["Primary", "Foundational"].includes(s.cat);
+        return true;
+    });
+    sel.innerHTML = '<option value="">Select Subject</option>' + filtered.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+}
+
+async function deleteTeacher(id) { if(confirm("Remove?")) await db.collection("teachers").doc(id).delete(); }
+function logout() { location.reload(); }
         document.getElementById('school-location').value = '';
         alert("School Added Successfully!");
     } catch (e) { alert("Error: " + e.message); }
