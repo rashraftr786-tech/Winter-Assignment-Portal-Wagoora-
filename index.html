@@ -4,6 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Wagoora v3.0 | Secure Portal</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <link rel="stylesheet" href="style.css?v=1.2">
+</head>
+<body class="min-h-screen">
+
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-6">
+        <div class="glass p-10 w-full max-w-md text-center">
+            <div class="inline-flex p-5 rounded-3xl bg-indigo-600/20 text-indigo-400 mb-6 border border-indigo-500/30">
+                <i class="fas fa-shield-halved text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-black mb-2 tracking-tight">Wagoora v3.0</h1>
+            <p class="text-slate-400 text-sm mb-10 font-medium">Secure Educational Gateway</p>
+
+            <div class="space-y-4 text-left">
+                <div class="relative">
+                    <select id="role-select" class="appearance-none">
+                        <option value="student">Student Portal</option>
+                        <option value="teacher">Teacher Portal</option>
+                        <option value="hoi">HOI Dashboard</option>
+                        <option value="superadmin">Super Admin</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                </div>
+                
+                <input type="text" id="user-field" placeholder="Username">
+                <input type="password" id="pass-field" placeholder="Password">
+                
+                <button onclick="handleLogin()" class="btn-glow w-full mt-6">
+                    Authorize Access
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-dashboard" class="hidden min-h-screen p-4 lg:p-8">
+        <div id="nav-info" class="hidden justify-between items-center mb-8 px-2">
+            <div>
+                <span id="display-role" class="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20"></span>
+                <h2 class="text-2xl font-bold mt-2">Workspace</h2>
+            </div>
+            <button onclick="logout()" class="w-12 h-12 rounded-2xl glass flex items-center justify-center text-red-400 hover:bg-red-500/10 transition-all">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+
+        <div id="panel-superadmin" class="panel hidden space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass p-6">
+                    <h3 class="font-bold mb-4 flex items-center"><i class="fas fa-school mr-2 text-indigo-400"></i> Register School</h3>
+                    <input type="text" id="school-name" placeholder="School Name" class="mb-3">
+                    <input type="text" id="school-location" placeholder="Location" class="mb-4">
+                    <button onclick="registerNewSchool()" class="w-full">Register School</button>
+                </div>
+                <div class="glass p-6">
+                    <h3 class="font-bold mb-4 flex items-center"><i class="fas fa-user-tie mr-2 text-indigo-400"></i> Appoint HOI</h3>
+                    <input type="text" id="hoi-username" placeholder="HOI Username" class="mb-3">
+                    <select id="hoi-school-select" class="mb-4"></select>
+                    <button onclick="appointHOI()" class="w-full">Grant Power</button>
+                </div>
+            </div>
+            <div class="glass p-6">
+                <h3 class="font-bold mb-4 flex items-center"><i class="fas fa-book mr-2 text-indigo-400"></i> Global Subject Registry</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <input type="text" id="sub-name" placeholder="Subject Name">
+                    <select id="sub-cat">
+                        <option value="Foundational">Foundational (Upto 2nd)</option>
+                        <option value="Primary">Primary (3rd-5th)</option>
+                        <option value="Middle">Middle (6th-8th)</option>
+                        <option value="Secondary">Secondary (9th-10th)</option>
+                        <option value="Higher Secondary">Higher Secondary (11th-12th)</option>
+                    </select>
+                </div>
+                <button onclick="addGlobalSubject()" class="w-full mt-4 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30">Add Subject</button>
+            </div>
+        </div>
+
+        <div id="panel-hoi" class="panel hidden space-y-6">
+            <div class="glass p-6">
+                <h3 class="font-bold mb-4"><i class="fas fa-user-plus mr-2 text-indigo-400"></i> Add Teacher</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <input type="text" id="t-name" placeholder="Teacher Username">
+                    <select id="t-subject"></select>
+                </div>
+                <button onclick="addTeacher()" class="w-full mt-4">Deploy Staff</button>
+            </div>
+            <div id="teacher-list" class="space-y-3"></div>
+        </div>
+
+        <div id="panel-teacher" class="panel hidden space-y-6">
+            <div class="glass p-8">
+                <h3 class="font-bold mb-6 text-indigo-400">Post New Quiz</h3>
+                <input type="text" id="quiz-title" placeholder="Quiz Title (e.g., Unit 1 Assessment)" class="mb-3">
+                <textarea id="quiz-question" placeholder="Enter Question" class="mb-4 h-24"></textarea>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <input type="text" id="opt-a" placeholder="Option A">
+                    <input type="text" id="opt-b" placeholder="Option B">
+                    <input type="text" id="opt-c" placeholder="Option C">
+                    <input type="text" id="opt-d" placeholder="Option D">
+                </div>
+                <select id="quiz-correct" class="mb-6">
+                    <option value="A">Correct: Option A</option>
+                    <option value="B">Correct: Option B</option>
+                    <option value="C">Correct: Option C</option>
+                    <option value="D">Correct: Option D</option>
+                </select>
+                <button onclick="postQuiz()" class="w-full">Publish to Students</button>
+            </div>
+        </div>
+
+        <div id="panel-student" class="panel hidden space-y-6">
+            <div class="glass p-6 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border-indigo-500/30">
+                <p class="text-xs font-bold uppercase opacity-60">School Enrollment</p>
+                <p id="student-school-display" class="text-xl font-bold text-white"></p>
+            </div>
+            <div id="quiz-feed" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1.2"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wagoora v3.0 | Secure Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
