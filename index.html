@@ -14,28 +14,29 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .hidden { display: none !important; }
-        .input-style { width: 100%; padding: 1rem; border-radius: 1rem; background-color: #f1f5f9; border: none; outline: none; }
-        .input-style:focus { ring: 2px solid #4f46e5; }
+        .input-style { width: 100%; padding: 1rem; border-radius: 1rem; background-color: #f1f5f9; border: none; outline: none; margin-bottom: 0.75rem; }
+        .input-style:focus { box-shadow: 0 0 0 2px #4f46e5; }
     </style>
 </head>
 <body>
 
-    <div id="auth-container" class="min-h-screen flex items-center justify-center p-6">
-        <div class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+    <div class="min-h-screen flex items-center justify-center p-6">
+        <div class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
             <div class="bg-indigo-900 p-8 text-center text-white">
                 <h1 class="text-xl font-bold">Winter Assignment Portal</h1>
                 <p class="text-xs opacity-70">Zone Wagoora (Baramulla)</p>
             </div>
 
-            <div id="login-box" class="p-8 space-y-4">
+            <div id="login-box" class="p-8">
                 <input type="email" id="login-email" placeholder="Email" class="input-style">
                 <input type="password" id="login-pass" placeholder="Password" class="input-style">
-                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Sign In</button>
-                <p class="text-center text-sm text-slate-500">New? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer">Register</span></p>
+                <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl mb-4">Sign In</button>
+                <p class="text-center text-sm text-slate-500">New user? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Register</span></p>
             </div>
 
-            <div id="signup-box" class="p-8 space-y-3 hidden">
-                <select id="reg-role" onchange="updateFormFields()" class="input-style font-bold text-indigo-700 bg-indigo-50">
+            <div id="signup-box" class="p-8 hidden">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Type</label>
+                <select id="reg-role" onchange="updateFormFields()" class="input-style font-bold text-indigo-700 bg-indigo-50 mt-1">
                     <option value="student">I am a Student</option>
                     <option value="teacher">I am a Teacher</option>
                 </select>
@@ -43,26 +44,29 @@
                 <input type="text" id="reg-name" placeholder="Full Name" class="input-style">
                 <input type="text" id="reg-school" placeholder="School Name" class="input-style">
 
-                <div id="student-extra-fields" class="space-y-3">
+                <div id="student-extra-fields">
                     <input type="text" id="reg-parent" placeholder="Parentage" class="input-style">
                     <input type="text" id="reg-residence" placeholder="Residence" class="input-style">
                     <select id="reg-grade" class="input-style">
                         <option value="Foundational">Foundational (Upto 2nd)</option>
                         <option value="Primary">Primary (3rd to 5th)</option>
-                        <option value="Middle">Grade (6th to 8th)</option>
+                        <option value="Middle">Middle (6th to 8th)</option>
                     </select>
                 </div>
 
                 <input type="email" id="reg-email" placeholder="Email Address" class="input-style">
                 <input type="password" id="reg-pass" placeholder="Password" class="input-style">
                 
-                <button onclick="handleSignup()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl">Create Account</button>
-                <p class="text-center text-sm text-slate-500" onclick="toggleView()">Back to Login</p>
+                <button type="button" id="reg-btn" onclick="handleSignup()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl mb-4 shadow-lg active:scale-95 transition-transform">
+                    Create Account
+                </button>
+                
+                <p class="text-center text-sm text-slate-500" onclick="toggleView()"><span class="cursor-pointer">Back to Login</span></p>
             </div>
         </div>
     </div>
 
-    <footer class="text-center p-6 text-slate-400">
+    <footer class="text-center p-10 text-slate-400">
         <p class="text-[10px]">Designed and developed by:<br>
         <span class="text-slate-900 font-extrabold uppercase">Mohammad Ashraf Rather</span><br>
         GPS Pethgam Wagoora | Near ZEO Office Wagoora</p>
