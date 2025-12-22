@@ -1,4 +1,3 @@
-/* GLOBAL RESET */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -6,19 +5,13 @@
     -webkit-tap-highlight-color: transparent; 
 }
 
-:root {
-    --primary: #6366f1;
-    --secondary: #a855f7;
-    --bg-dark: #020617;
-}
-
 body {
-    background: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg-dark)) !important;
+    background: radial-gradient(circle at 50% -20%, #1e1b4b, #020617) !important;
+    min-height: 100vh;
     color: #f8fafc;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* STUNNING GLASS EFFECT */
 .glass {
     background: rgba(30, 41, 59, 0.45) !important;
     backdrop-filter: blur(20px) !important;
@@ -28,7 +21,6 @@ body {
     border-radius: 28px !important;
 }
 
-/* PREMIUM INPUTS */
 input, select, textarea {
     background: rgba(15, 23, 42, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -37,19 +29,16 @@ input, select, textarea {
     border-radius: 18px !important;
     width: 100% !important;
     outline: none !important;
-    font-size: 16px !important; /* Fixes Mobile Zoom */
-    transition: 0.3s all ease;
+    font-size: 16px !important;
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: var(--primary) !important;
+    border-color: #6366f1 !important;
     background: rgba(15, 23, 42, 0.9) !important;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
 }
 
-/* BUTTONS */
 .btn-glow, button {
-    background: linear-gradient(135deg, var(--primary), var(--secondary)) !important;
+    background: linear-gradient(135deg, #6366f1, #a855f7) !important;
     color: white !important;
     font-weight: 800 !important;
     padding: 16px !important;
@@ -58,12 +47,13 @@ input:focus, select:focus, textarea:focus {
     letter-spacing: 1px !important;
     font-size: 0.8rem !important;
     border: none !important;
-    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4) !important;
+    cursor: pointer;
 }
 
 button:active { transform: scale(0.96); }
 
-/* PANEL ANIMATIONS */
+.panel.hidden { display: none !important; }
+
 .panel:not(.hidden) {
     display: block !important;
     animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -72,10 +62,5 @@ button:active { transform: scale(0.96); }
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
     to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
-/* QUIZ FEED STYLING */
-.quiz-card {
-    border-left: 4px solid var(--primary) !important;
 }
 
