@@ -2,75 +2,126 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winter Assignment Portal Zone Wagoora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Winter Assignment Portal | Zone Wagoora</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .hidden { display: none !important; }
-        .input-style { width: 100%; padding: 1rem; border-radius: 1rem; background-color: #f1f5f9; border: none; outline: none; margin-bottom: 0.75rem; }
-        .input-style:focus { box-shadow: 0 0 0 2px #4f46e5; }
+        .app-gradient { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
+        .input-style { @apply w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500 transition-all; }
+        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <div class="min-h-screen flex items-center justify-center p-6">
-        <div class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
-            <div class="bg-indigo-900 p-8 text-center text-white">
-                <h1 class="text-xl font-bold">Winter Assignment Portal</h1>
-                <p class="text-xs opacity-70">Zone Wagoora (Baramulla)</p>
+    <div id="auth-screen" class="min-h-screen flex flex-col items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-8 border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 app-gradient rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-graduation-cap text-white text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-black text-slate-800">Zone Wagoora</h1>
+                <p class="text-slate-500 text-sm">Winter Assignment Portal</p>
             </div>
 
-            <div id="login-box" class="p-8">
-                <input type="email" id="login-email" placeholder="Email" class="input-style">
-                <input type="password" id="login-pass" placeholder="Password" class="input-style">
-                <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl mb-4">Sign In</button>
-                <p class="text-center text-sm text-slate-500">New user? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Register</span></p>
+            <div id="login-box" class="space-y-4">
+                <input type="email" id="login-email" placeholder="Email" 
+                       class="w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500"
+                       autocomplete="email" autocapitalize="none" spellcheck="false">
+                
+                <input type="password" id="login-pass" placeholder="Password" 
+                       class="w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500">
+                
+                <button type="button" onclick="handleLogin()" 
+                        class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
+                    Sign In
+                </button>
+                <p class="text-center text-sm text-slate-500">
+                    New user? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Register</span>
+                </p>
             </div>
 
-            <div id="signup-box" class="p-8 hidden">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Type</label>
-                <select id="reg-role" onchange="updateFormFields()" class="input-style font-bold text-indigo-700 bg-indigo-50 mt-1">
-                    <option value="student">I am a Student</option>
-                    <option value="teacher">I am a Teacher</option>
+            <div id="signup-box" class="hidden space-y-4">
+                <select id="reg-role" onchange="updateFormFields()" class="w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700">
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
                 </select>
 
-                <input type="text" id="reg-name" placeholder="Full Name" class="input-style">
-                <input type="text" id="reg-school" placeholder="School Name" class="input-style">
-
-                <div id="student-extra-fields">
-                    <input type="text" id="reg-parent" placeholder="Parentage" class="input-style">
-                    <input type="text" id="reg-residence" placeholder="Residence" class="input-style">
-                    <select id="reg-grade" class="input-style">
-                        <option value="Foundational">Foundational (Upto 2nd)</option>
-                        <option value="Primary">Primary (3rd to 5th)</option>
-                        <option value="Middle">Middle (6th to 8th)</option>
+                <input type="text" id="reg-name" placeholder="Full Name" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
+                <input type="text" id="reg-school" placeholder="School Name" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
+                
+                <div id="student-extra-fields" class="space-y-4">
+                    <input type="text" id="reg-parent" placeholder="Parentage" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
+                    <input type="text" id="reg-residence" placeholder="Residence" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
+                    <select id="reg-grade" class="w-full p-4 rounded-2xl bg-slate-100 border-none font-bold text-slate-700">
+                        <option value="Foundational">Foundational (Nur-2nd)</option>
+                        <option value="Primary">Primary (3rd-5th)</option>
+                        <option value="Middle">Middle (6th-8th)</option>
                     </select>
                 </div>
 
-                <input type="email" id="reg-email" placeholder="Email Address" class="input-style">
-                <input type="password" id="reg-pass" placeholder="Password" class="input-style">
+                <input type="email" id="reg-email" placeholder="Email" class="w-full p-4 rounded-2xl bg-slate-100 border-none" autocapitalize="none">
+                <input type="password" id="reg-pass" placeholder="Set Password" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
                 
-                <button type="button" id="reg-btn" onclick="handleSignup()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl mb-4 shadow-lg active:scale-95 transition-transform">
+                <button type="button" onclick="handleSignup()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
                     Create Account
                 </button>
-                
-                <p class="text-center text-sm text-slate-500" onclick="toggleView()"><span class="cursor-pointer">Back to Login</span></p>
+                <p class="text-center text-sm text-slate-500">
+                    Already registered? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Login</span>
+                </p>
             </div>
+        </div>
+
+        <div class="mt-8">
+            <a href="admin.html" class="text-[10px] text-slate-300 hover:text-indigo-400 font-bold uppercase tracking-widest transition-colors">Staff Portal</a>
         </div>
     </div>
 
-    <footer class="text-center p-10 text-slate-400">
-        <p class="text-[10px]">Designed and developed by:<br>
-        <span class="text-slate-900 font-extrabold uppercase">Mohammad Ashraf Rather</span><br>
-        GPS Pethgam Wagoora | Near ZEO Office Wagoora</p>
-    </footer>
+    <div id="app-dashboard" class="hidden min-h-screen">
+        <div class="app-gradient p-8 pb-20 rounded-b-[3rem] text-white shadow-xl">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 id="user-name" class="text-2xl font-black">Welcome Back!</h2>
+                    <p id="user-subtext" class="text-indigo-100 text-xs font-bold uppercase tracking-tighter"></p>
+                </div>
+                <button onclick="logout()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+            <div class="bg-white/10 p-4 rounded-3xl backdrop-blur-md flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-yellow-900 shadow-inner">
+                        <i class="fas fa-coins text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-black opacity-70">Total Coins</p>
+                        <p id="user-coins" class="text-xl font-black">0</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right opacity-30"></i>
+            </div>
+        </div>
+
+        <div class="px-6 -mt-10 mb-20">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest">Your Subjects</h3>
+                <span class="text-[10px] text-indigo-600 font-bold">WINTER 2024-25</span>
+            </div>
+            <div id="role-view" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                </div>
+        </div>
+
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-8 py-4 flex justify-between items-center shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+            <button class="text-indigo-600 flex flex-col items-center"><i class="fas fa-home text-xl"></i><span class="text-[9px] font-bold mt-1">Home</span></button>
+            <button class="text-slate-300 flex flex-col items-center"><i class="fas fa-tasks text-xl"></i><span class="text-[9px] font-bold mt-1">Daily Task</span></button>
+            <button class="text-slate-300 flex flex-col items-center"><i class="fas fa-award text-xl"></i><span class="text-[9px] font-bold mt-1">Rewards</span></button>
+        </nav>
+    </div>
 
     <script src="script.js"></script>
 </body>
