@@ -10,61 +10,76 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .app-card { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: transform 0.2s; }
+        .app-card:active { transform: scale(0.95); }
+        .icon-box { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 20px; }
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
 
-    <div id="login-screen" class="flex-grow flex flex-col items-center justify-center p-6">
-        <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-            <div class="bg-indigo-900 p-8 text-center text-white">
-                <i class="fas fa-snowflake text-4xl mb-4"></i>
-                <h1 class="text-xl font-bold">Winter Assignment Portal</h1>
-                <p class="text-xs opacity-70">Zone Wagoora (Baramulla)</p>
+    <div id="auth-screen" class="flex-grow flex flex-col items-center justify-center p-6 bg-slate-50">
+        <div class="w-full max-w-sm bg-white rounded-[40px] shadow-2xl overflow-hidden">
+            <div class="bg-indigo-900 p-10 text-center text-white">
+                <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                    <i class="fas fa-snowflake text-3xl"></i>
+                </div>
+                <h1 class="text-xl font-bold">Wagoora v3.0</h1>
+                <p class="text-xs text-indigo-300">Winter Assignment Portal</p>
             </div>
-            <div class="p-8 space-y-4">
-                <input type="email" id="email-field" placeholder="Email Address" class="w-full p-4 rounded-xl border border-slate-200">
-                <input type="password" id="pass-field" placeholder="Password" class="w-full p-4 rounded-xl border border-slate-200">
-                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700">Login</button>
-                <p class="text-center text-xs text-slate-400">Forgot Password?</p>
+            
+            <div id="login-form" class="p-8 space-y-4">
+                <input type="email" id="login-email" placeholder="Email Address" class="w-full p-4 rounded-2xl bg-slate-50 border-none outline-indigo-500">
+                <input type="password" id="login-pass" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-50 border-none outline-indigo-500">
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200">Sign In</button>
+                <p class="text-center text-sm text-slate-500">New user? <span onclick="toggleAuth()" class="text-indigo-600 font-bold cursor-pointer">Sign Up</span></p>
+            </div>
+
+            <div id="signup-form" class="p-8 space-y-3 hidden">
+                <select id="reg-role" class="w-full p-4 rounded-2xl bg-slate-50 border-none">
+                    <option value="student">I am a Student</option>
+                    <option value="teacher">I am a Teacher</option>
+                </select>
+                <input type="text" id="reg-name" placeholder="Full Name" class="w-full p-4 rounded-2xl bg-slate-50 border-none">
+                <input type="text" id="reg-school" placeholder="School Name" class="w-full p-4 rounded-2xl bg-slate-50 border-none">
+                <select id="reg-class" class="w-full p-4 rounded-2xl bg-slate-50 border-none">
+                    <option value="Foundational">Grade: Foundational (Upto 2nd)</option>
+                    <option value="Primary">Grade: Primary (3rd to 5th)</option>
+                    <option value="Middle">Grade: Middle (6th to 8th)</option>
+                </select>
+                <input type="email" id="reg-email" placeholder="Email" class="w-full p-4 rounded-2xl bg-slate-50 border-none">
+                <input type="password" id="reg-pass" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-50 border-none">
+                <button onclick="handleSignup()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl">Request Access</button>
+                <p class="text-center text-sm text-slate-500" onclick="toggleAuth()">Back to Login</p>
             </div>
         </div>
     </div>
 
-    <div id="main-dashboard" class="hidden flex-grow">
-        <div class="bg-indigo-600 p-6 text-white flex items-center gap-4">
-            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold" id="user-initial">Z</div>
-            <div>
-                <h2 id="display-name" class="font-bold text-lg">Loading...</h2>
-                <p id="display-stats" class="text-xs opacity-80">Class: 5th | 🪙 0 Coins</p>
-            </div>
-            <div class="ml-auto flex gap-2">
-                <div id="trophy-slot" class="text-2xl"></div>
-                <button onclick="logout()" class="text-white/80 p-2"><i class="fas fa-sign-out-alt"></i></button>
+    <div id="app-dashboard" class="hidden flex-grow flex flex-col">
+        <div class="bg-indigo-600 p-8 text-white rounded-b-[40px] shadow-xl">
+            <div class="flex items-center gap-5">
+                <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold border-2 border-white/50" id="pfp">?</div>
+                <div>
+                    <h2 id="user-name" class="text-2xl font-black">User Name</h2>
+                    <p id="user-subtext" class="text-indigo-100 text-sm opacity-80">Class: Middle | Wagoora</p>
+                    <div class="flex gap-2 mt-2">
+                        <span id="coin-count" class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">🪙 0 Coins</span>
+                        <span id="trophy-display" class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">No Trophy</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="p-6 grid grid-cols-3 gap-4">
-            <button onclick="showSubjectMenu()" class="menu-card">
-                <div class="icon-circle bg-blue-100 text-blue-600"><i class="fas fa-book"></i></div>
-                <span>Assignments</span>
-            </button>
-            <button onclick="showLeaderboard()" class="menu-card">
-                <div class="icon-circle bg-yellow-100 text-yellow-600"><i class="fas fa-trophy"></i></div>
-                <span>Rankings</span>
-            </button>
-            <button onclick="showProfile()" class="menu-card">
-                <div class="icon-circle bg-purple-100 text-purple-600"><i class="fas fa-user-graduate"></i></div>
-                <span>My Profile</span>
-            </button>
-        </div>
-
-        <div id="quiz-container" class="px-6 pb-20"></div>
+        <div id="role-view" class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            </div>
     </div>
 
-    <footer class="bg-white border-t border-slate-100 p-4 text-center">
-        <p class="text-[10px] text-slate-400 leading-tight">
+    <footer class="p-6 text-center text-slate-400">
+        <p class="text-[10px] leading-relaxed">
             Designed and developed by:<br>
-            <span class="text-slate-700 font-bold uppercase">Mohammad Ashraf Rather</span><br>
+            <span class="text-slate-900 font-extrabold">MOHAMMAD ASHRAF RATHER</span><br>
             Govt. Primary School Pethgam Wagoora | Near ZEO Office Wagoora
         </p>
     </footer>
