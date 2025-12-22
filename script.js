@@ -9,11 +9,13 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+if (!firebase.apps.length) { 
+    firebase.initializeApp(firebaseConfig); 
+}
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// 2. UI View Toggles
+// 2. UI View Controls
 function toggleView() {
     document.getElementById('login-box').classList.toggle('hidden');
     document.getElementById('signup-box').classList.toggle('hidden');
@@ -22,6 +24,7 @@ function toggleView() {
 function updateFormFields() {
     const role = document.getElementById('reg-role').value;
     const extraFields = document.getElementById('student-extra-fields');
+    // Teachers do not see Parentage, Residence, or Grade
     if (role === 'teacher') {
         extraFields.classList.add('hidden');
     } else {
@@ -29,12 +32,17 @@ function updateFormFields() {
     }
 }
 
-// 3. SECURE LOGIN LOGIC
+// 3. UPDATED LOGIN LOGIC (Fixes "Badly Formatted" Error)
 async function handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pass = document.getElementById('login-pass').value.trim();
-    
-    if (!email || !pass) return alert("Enter credentials");
+    // Trim spaces and force lowercase to prevent Android formatting errors
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const pass = document.getElementById('login-pass').value;
+    const loginBtn = document.querySelector('button[onclick="handleLogin()"]');
+
+    if (!email || !pass) return alert("Please enter email and password.");
+
+    loginBtn.innerText = "Authenticating...";
+    loginBtn.disabled = true;
 
     try {
         const cred = await auth.signInWithEmailAndPassword(email, pass);
@@ -43,38 +51,45 @@ async function handleLogin() {
 
         if (!user) throw new Error("User profile not found in database.");
 
-        // ROLE ROUTING
+        // Admin Routing for GitHub Pages
         if (user.role === 'admin') {
-            // Redirect to admin.html (Ensure this file exists in your folder)
-            window.location.href = "admin.html";
+            let currentPath = window.location.pathname;
+            let directory = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            window.location.href = directory + "/admin.html";
             return;
         }
 
+        // Approval Check
         if (!user.approved) {
-            alert("Approval Pending. Please contact HOI.");
+            alert("Access Denied: Your account is awaiting HOI approval.");
             auth.signOut();
+            location.reload();
             return;
         }
 
-        // Show Student/Teacher Dashboard
+        // Show Teacher/Student Dashboard
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('app-dashboard').classList.remove('hidden');
         setupUserDashboard(user);
 
     } catch (e) {
-        alert("Login Error: " + e.message);
+        alert("Login Failed: " + e.message);
+    } finally {
+        loginBtn.innerText = "Sign In";
+        loginBtn.disabled = false;
     }
 }
 
-// 4. SIGNUP LOGIC
+// 4. UPDATED SIGNUP LOGIC (Prevents Role Confusion)
 async function handleSignup() {
     const role = document.getElementById('reg-role').value;
     const name = document.getElementById('reg-name').value.trim();
     const school = document.getElementById('reg-school').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
+    // Normalize email during signup
+    const email = document.getElementById('reg-email').value.trim().toLowerCase();
     const pass = document.getElementById('reg-pass').value.trim();
 
-    if (!name || !email || !pass) return alert("Please fill all fields.");
+    if (!name || !email || !pass) return alert("All basic fields are required.");
 
     try {
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
@@ -84,10 +99,12 @@ async function handleSignup() {
             role: role,
             school: school,
             email: email,
-            approved: false, // Default to false for security
-            uid: cred.user.uid
+            approved: false, // Security Gate
+            uid: cred.user.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
+        // Add extra data only if registering as student
         if (role === 'student') {
             userData.parentage = document.getElementById('reg-parent').value.trim();
             userData.residence = document.getElementById('reg-residence').value.trim();
@@ -96,15 +113,15 @@ async function handleSignup() {
         }
 
         await db.collection("users").doc(cred.user.uid).set(userData);
-        alert("Account Created! Waiting for Admin/HOI Approval.");
+        alert("Registration Successful! Please wait for HOI/Admin approval.");
         auth.signOut();
         location.reload();
     } catch (e) {
-        alert("Signup failed: " + e.message);
+        alert("Signup Error: " + e.message);
     }
 }
 
-// 5. DASHBOARD GENERATOR (Student View)
+// 5. SUBJECT DASHBOARD GENERATOR
 function setupUserDashboard(user) {
     document.getElementById('user-name').innerText = user.fullName;
     document.getElementById('user-subtext').innerText = `${user.grade || user.role.toUpperCase()} | ${user.school}`;
@@ -112,22 +129,23 @@ function setupUserDashboard(user) {
     const grid = document.getElementById('role-view');
     grid.innerHTML = ''; 
 
-    let subjects = [];
-    if (user.grade === 'Foundational') subjects = ["English", "Mathematics", "Urdu", "Kashmiri"];
-    else if (user.grade === 'Primary') subjects = ["English", "Mathematics", "Urdu", "Kashmiri", "EVS"];
-    else if (user.grade === 'Middle') subjects = ["English", "Mathematics", "Urdu", "Kashmiri", "Science", "Social Studies"];
+    // Define subject logic
+    let subjects = ["English", "Mathematics", "Urdu", "Kashmiri"];
+    if (user.grade === 'Primary') subjects.push("EVS");
+    if (user.grade === 'Middle') subjects.push("Science", "Social Studies");
 
     subjects.forEach(sub => {
         grid.innerHTML += `
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center cursor-pointer active:scale-95 transition-all">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all">
                 <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl mb-3">
                     <i class="fas fa-book-open"></i>
                 </div>
-                <span class="font-bold text-slate-700 text-sm">${sub}</span>
+                <span class="font-bold text-slate-700 text-sm leading-tight">${sub}</span>
             </div>
         `;
     });
 }
 
-function logout() { auth.signOut().then(() => location.reload()); }
-
+function logout() { 
+    auth.signOut().then(() => location.reload()); 
+}
