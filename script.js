@@ -1,3 +1,4 @@
+// Firebase Configuration - Ensure this is your actual config
 const firebaseConfig = {
     apiKey: "AIzaSyBcRfUj9N_9LaVuEuIT7d0ueJ88heyP9hI",
     authDomain: "wagoora-edu-portal.firebaseapp.com",
@@ -11,15 +12,14 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// 1. DYNAMIC FORM LOGIC
+// UI Toggles
 function updateFormFields() {
     const role = document.getElementById('reg-role').value;
     const extraFields = document.getElementById('student-extra-fields');
-    
     if (role === 'teacher') {
-        extraFields.classList.add('hidden'); // This hides Parentage, Residence, Grade
+        extraFields.classList.add('hidden');
     } else {
-        extraFields.classList.remove('hidden'); // This shows them for students
+        extraFields.classList.remove('hidden');
     }
 }
 
@@ -28,30 +28,39 @@ function toggleView() {
     document.getElementById('signup-box').classList.toggle('hidden');
 }
 
-// 2. SIGNUP LOGIC
+// Fixed Signup Logic
 async function handleSignup() {
+    const regBtn = document.getElementById('reg-btn');
+    regBtn.disabled = true;
+    regBtn.innerText = "Processing...";
+
     const role = document.getElementById('reg-role').value;
     const name = document.getElementById('reg-name').value.trim();
     const school = document.getElementById('reg-school').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const pass = document.getElementById('reg-pass').value.trim();
 
-    if (!name || !email || !pass) return alert("Please fill required fields.");
+    if (!name || !email || !pass) {
+        alert("Name, Email, and Password are required.");
+        regBtn.disabled = false;
+        regBtn.innerText = "Create Account";
+        return;
+    }
 
     try {
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
         
-        // Prepare base data
         let userData = {
             fullName: name,
             role: role,
             school: school,
             email: email,
-            approved: false,
-            uid: cred.user.uid
+            approved: false, // Security Gate
+            uid: cred.user.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // Add extra data ONLY if student
+        // Only add student data if role is student
         if (role === 'student') {
             userData.parentage = document.getElementById('reg-parent').value.trim();
             userData.residence = document.getElementById('reg-residence').value.trim();
@@ -60,15 +69,18 @@ async function handleSignup() {
         }
 
         await db.collection("users").doc(cred.user.uid).set(userData);
-        alert("Registration successful! Access is pending Admin approval.");
+        
+        alert("Account Created! Please wait for Admin/HOI approval.");
         auth.signOut();
         location.reload();
     } catch (e) {
-        alert("Error: " + e.message);
+        alert("Registration failed: " + e.message);
+        regBtn.disabled = false;
+        regBtn.innerText = "Create Account";
     }
 }
 
-// 3. LOGIN LOGIC
+// Login Logic
 async function handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
@@ -78,13 +90,11 @@ async function handleLogin() {
         const user = doc.data();
 
         if (user && !user.approved) {
-            alert("Account pending approval.");
+            alert("Approval Pending. Please contact your administrator.");
             auth.signOut();
             return;
         }
-        alert("Welcome, " + user.fullName);
+        alert("Logged in as " + user.fullName);
     } catch (e) { alert(e.message); }
 }
-
-
 
