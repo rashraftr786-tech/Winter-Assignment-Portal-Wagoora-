@@ -1,5 +1,5 @@
 /**
- * WAGOORA V3.0 - STABLE MOBILE VERSION
+ * WAGOORA V3.0 - ANDROID STABLE VERSION
  */
 
 const firebaseConfig = {
@@ -16,6 +16,7 @@ const db = firebase.firestore();
 
 let state = {
     currentUser: null,
+    // YOUR HARDCODED SUBJECT LIST
     localSubjects: [
         { name: "English", cat: "Foundational" },
         { name: "Mathematics", cat: "Foundational" },
@@ -30,7 +31,7 @@ let state = {
     schools: [], hois: [], teachers: []
 };
 
-// --- AUTHENTICATION ---
+// --- AUTHENTICATION (FORCE-DISPLAY FIX) ---
 async function handleLogin() {
     const role = document.getElementById('role-select').value;
     const user = document.getElementById('user-field').value.trim();
@@ -47,6 +48,7 @@ async function handleLogin() {
         }
 
         if (role === 'hoi') {
+            // Android-optimized database fetch
             const snap = await db.collection("hois").where("username", "==", user).get();
             if (!snap.empty) {
                 const data = snap.docs[0].data();
@@ -55,28 +57,31 @@ async function handleLogin() {
                 } else { alert("Wrong Password"); }
             } else { alert("HOI not found"); }
         }
-    } catch (e) { alert("Error: " + e.message); }
+    } catch (e) { alert("Mobile Sync Error: " + e.message); }
 }
 
 function showPortal(role, schoolName) {
     state.currentUser = { role: role, name: schoolName };
 
-    // 1. Hide Login, Show Dashboard
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-dashboard').classList.remove('hidden');
-    document.getElementById('main-dashboard').style.display = 'block';
+    // FORCE HIDE LOGIN & SHOW DASHBOARD
+    const loginScreen = document.getElementById('login-screen');
+    const dashboard = document.getElementById('main-dashboard');
+    const navInfo = document.getElementById('nav-info');
+
+    loginScreen.style.setProperty("display", "none", "important");
+    dashboard.classList.remove('hidden');
+    dashboard.style.setProperty("display", "block", "important");
     
-    // 2. Setup Navbar
-    document.getElementById('nav-info').classList.remove('hidden');
-    document.getElementById('nav-info').style.display = 'flex';
+    navInfo.classList.remove('hidden');
+    navInfo.style.setProperty("display", "flex", "important");
     document.getElementById('display-role').innerText = role + " | " + schoolName;
 
-    // 3. Force Show Correct Panel
+    // Show correct panel
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
     const target = document.getElementById('panel-' + role);
     if (target) {
         target.classList.remove('hidden');
-        target.style.display = 'block';
+        target.style.setProperty("display", "block", "important");
     }
 
     startCloudListeners();
@@ -84,20 +89,20 @@ function showPortal(role, schoolName) {
 
 // --- CLOUD ENGINE ---
 function startCloudListeners() {
-    // Sync Schools
+    // Schools
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
         renderSchools();
     });
 
-    // Sync Subjects
+    // Subjects (Sync and Merge)
     db.collection("subjects").onSnapshot(s => {
         state.cloudSubjects = s.docs.map(d => d.data());
         state.globalSubjects = [...state.localSubjects, ...state.cloudSubjects];
         renderSubjectDropdown();
     });
 
-    // Sync Teachers for HOI
+    // Teachers for HOI
     if (state.currentUser.role === 'hoi') {
         db.collection("teachers")
             .where("schoolContext", "==", state.currentUser.name)
@@ -108,7 +113,7 @@ function startCloudListeners() {
     }
 }
 
-// --- UI RENDERING ---
+// --- DROPDOWN FILTER (PRIMARY SCHOOL FIX) ---
 function renderSubjectDropdown() {
     const select = document.getElementById('t-subject');
     if (!select || !state.currentUser) return;
@@ -117,15 +122,44 @@ function renderSubjectDropdown() {
     
     const filtered = state.globalSubjects.filter(sub => {
         const cat = sub.cat;
-        if (school.includes("higher secondary")) return sub.name === "English" || cat === "Higher Secondary";
-        if (school.includes("secondary")) return ["Secondary", "Middle", "Primary", "Foundational"].includes(cat);
-        if (school.includes("middle")) return ["Middle", "Primary", "Foundational"].includes(cat);
-        if (school.includes("primary")) return ["Primary", "Foundational"].includes(cat);
+        // Higher Secondary: Only English + Cloud HS subjects
+        if (school.includes("higher secondary") || school.includes("hss")) {
+            return sub.name === "English" || cat === "Higher Secondary";
+        }
+        // Secondary: HS + Middle + Primary + Foundational
+        if (school.includes("secondary") || school.includes("hs")) {
+            return ["Secondary", "Middle", "Primary", "Foundational"].includes(cat);
+        }
+        // Middle: Middle + Primary + Foundational
+        if (school.includes("middle") || school.includes("ms")) {
+            return ["Middle", "Primary", "Foundational"].includes(cat);
+        }
+        // Primary: Primary + Foundational
+        if (school.includes("primary") || school.includes("ps")) {
+            return ["Primary", "Foundational"].includes(cat);
+        }
         return cat === "Foundational";
     });
 
     select.innerHTML = '<option value="">Select Subject</option>' + 
         filtered.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+}
+
+// --- UI RENDERING ---
+function renderTeachers() {
+    const list = document.getElementById('teacher-list');
+    if (list) list.innerHTML = state.teachers.map(t => `
+        <div class="glass p-3 rounded-xl mb-2 flex justify-between items-center">
+            <span>${t.name} (${t.subject})</span>
+            <button onclick="deleteTeacher('${t.id}')" class="text-red-400 font-bold p-2">X</button>
+        </div>
+    `).join('') || "No staff registered.";
+}
+
+function renderSchools() {
+    const drop = document.getElementById('hoi-school-select');
+    if (drop) drop.innerHTML = '<option value="">Select School</option>' + 
+        state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
 }
 
 async function addTeacher() {
@@ -136,24 +170,8 @@ async function addTeacher() {
             name: name, subject: sub, schoolContext: state.currentUser.name
         });
         document.getElementById('t-name').value = '';
-        alert("Success!");
+        alert("Teacher Added!");
     }
-}
-
-function renderTeachers() {
-    const list = document.getElementById('teacher-list');
-    if (list) list.innerHTML = state.teachers.map(t => `
-        <div class="glass p-3 rounded-xl mb-2 flex justify-between">
-            <span>${t.name} (${t.subject})</span>
-            <button onclick="deleteTeacher('${t.id}')" class="text-red-400">X</button>
-        </div>
-    `).join('') || "No staff registered.";
-}
-
-function renderSchools() {
-    const drop = document.getElementById('hoi-school-select');
-    if (drop) drop.innerHTML = '<option value="">Select School</option>' + 
-        state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
 }
 
 async function deleteTeacher(id) { if(confirm("Delete?")) await db.collection("teachers").doc(id).delete(); }
