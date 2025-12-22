@@ -9,70 +9,63 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .hidden { display: none !important; }
-        input, select { transition: all 0.3s ease; }
+        .input-style { width: 100%; padding: 1rem; border-radius: 1rem; background-color: #f1f5f9; border: none; outline: none; }
+        .input-style:focus { ring: 2px solid #4f46e5; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body>
 
-    <div id="auth-screen" class="flex flex-col items-center justify-center min-h-screen p-6">
-        <div class="w-full max-w-sm bg-white rounded-[40px] shadow-2xl overflow-hidden border border-slate-100">
+    <div id="auth-container" class="min-h-screen flex items-center justify-center p-6">
+        <div class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div class="bg-indigo-900 p-8 text-center text-white">
-                <i class="fas fa-snowflake text-4xl mb-3"></i>
                 <h1 class="text-xl font-bold">Winter Assignment Portal</h1>
-                <p class="text-xs text-indigo-300">Zone Wagoora (Baramulla)</p>
-            </div>
-            
-            <div id="login-form" class="p-8 space-y-4">
-                <input type="email" id="login-email" placeholder="Email Address" class="w-full p-4 rounded-2xl bg-slate-100 outline-none focus:ring-2 ring-indigo-500">
-                <input type="password" id="login-pass" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-100 outline-none focus:ring-2 ring-indigo-500">
-                <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700">Sign In</button>
-                <p class="text-center text-sm">New user? <span onclick="toggleAuth()" class="text-indigo-600 font-bold cursor-pointer">Register</span></p>
+                <p class="text-xs opacity-70">Zone Wagoora (Baramulla)</p>
             </div>
 
-            <div id="signup-form" class="p-8 space-y-3 hidden">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Identify Yourself</label>
-                <select id="reg-role" onchange="toggleRoleFields()" class="w-full p-4 rounded-2xl bg-indigo-50 border-none font-bold text-indigo-700">
-                    <option value="student">Register as Student</option>
-                    <option value="teacher">Register as Teacher</option>
+            <div id="login-box" class="p-8 space-y-4">
+                <input type="email" id="login-email" placeholder="Email" class="input-style">
+                <input type="password" id="login-pass" placeholder="Password" class="input-style">
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Sign In</button>
+                <p class="text-center text-sm text-slate-500">New? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer">Register</span></p>
+            </div>
+
+            <div id="signup-box" class="p-8 space-y-3 hidden">
+                <select id="reg-role" onchange="updateFormFields()" class="input-style font-bold text-indigo-700 bg-indigo-50">
+                    <option value="student">I am a Student</option>
+                    <option value="teacher">I am a Teacher</option>
                 </select>
-                
-                <input type="text" id="reg-name" placeholder="Full Name" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                <input type="text" id="reg-school" placeholder="School Name" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
 
-                <div id="student-only-fields" class="space-y-3">
-                    <input type="text" id="reg-parent" placeholder="Parentage" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                    <input type="text" id="reg-residence" placeholder="Residence" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                    <select id="reg-grade" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                        <option value="Foundational">Grade: Foundational (Upto 2nd)</option>
-                        <option value="Primary">Grade: Primary (3rd to 5th)</option>
-                        <option value="Middle">Grade: Middle (6th to 8th)</option>
+                <input type="text" id="reg-name" placeholder="Full Name" class="input-style">
+                <input type="text" id="reg-school" placeholder="School Name" class="input-style">
+
+                <div id="student-extra-fields" class="space-y-3">
+                    <input type="text" id="reg-parent" placeholder="Parentage" class="input-style">
+                    <input type="text" id="reg-residence" placeholder="Residence" class="input-style">
+                    <select id="reg-grade" class="input-style">
+                        <option value="Foundational">Foundational (Upto 2nd)</option>
+                        <option value="Primary">Primary (3rd to 5th)</option>
+                        <option value="Middle">Grade (6th to 8th)</option>
                     </select>
                 </div>
 
-                <input type="email" id="reg-email" placeholder="Email Address" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                <input type="password" id="reg-pass" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
+                <input type="email" id="reg-email" placeholder="Email Address" class="input-style">
+                <input type="password" id="reg-pass" placeholder="Password" class="input-style">
                 
-                <button type="button" onclick="handleSignup()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-green-700">
-                    Create Account
-                </button>
-                
-                <p class="text-center text-sm cursor-pointer hover:underline" onclick="toggleAuth()">Already have an account? Login</p>
+                <button onclick="handleSignup()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl">Create Account</button>
+                <p class="text-center text-sm text-slate-500" onclick="toggleView()">Back to Login</p>
             </div>
         </div>
     </div>
 
-    <footer class="p-8 text-center text-slate-400">
-        <p class="text-[10px] leading-relaxed">
-            Designed and developed by:<br>
-            <span class="text-slate-900 font-extrabold uppercase">Mohammad Ashraf Rather</span><br>
-            Govt. Primary School Pethgam Wagoora | Near ZEO Office Wagoora
-        </p>
+    <footer class="text-center p-6 text-slate-400">
+        <p class="text-[10px]">Designed and developed by:<br>
+        <span class="text-slate-900 font-extrabold uppercase">Mohammad Ashraf Rather</span><br>
+        GPS Pethgam Wagoora | Near ZEO Office Wagoora</p>
     </footer>
 
     <script src="script.js"></script>
