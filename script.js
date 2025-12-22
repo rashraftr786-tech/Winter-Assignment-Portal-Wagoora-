@@ -36,12 +36,10 @@ async function handleLogin() {
 
         if (!user || !pass) return alert("Please fill all fields");
 
-        // Super Admin
         if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
             return initPortal('superadmin', 'System Master');
         }
 
-        // HOI Cloud Auth
         if (role === 'hoi') {
             const query = await db.collection("hois").where("username", "==", user).get();
             if (!query.empty) {
@@ -58,7 +56,6 @@ async function handleLogin() {
             return;
         }
         
-        // Teacher/Student Simple Auth
         if (role === 'teacher' || role === 'student') {
             initPortal(role, user);
         }
@@ -94,38 +91,37 @@ function initPortal(role, name) {
     startCloudListeners(); 
 }
 
-// --- CLOUD ENGINE ---
+// --- CLOUD ENGINE (FIXED NESTING ERROR) ---
 function startCloudListeners() {
+    // 1. Schools
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
         renderSchoolList(); 
     });
 
-    function startCloudListeners() {
-    // ... other listeners ...
-
-    // Sync Subjects
+    // 2. Global Subjects
     db.collection("subjects").onSnapshot(s => {
         state.globalSubjects = s.docs.map(d => d.data());
-        console.log("Subjects received from cloud:", state.globalSubjects); // Debug check
-        
-        // This must run every time data changes
+        console.log("Subjects received:", state.globalSubjects); 
         updateHOISubjectDropdown(); 
     });
 
-    // ... other listeners ...
-}
-
-
+    // 3. HOI Registry
     db.collection("hois").onSnapshot(s => {
         state.hois = s.docs.map(d => d.data());
         renderHOIList();
     });
 
-    db.collection("teachers").orderBy("createdAt", "desc").onSnapshot(s => {
-        state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
-        renderTeacherList();
-    });
+    // 4. Teacher Registry (Filtered by School)
+    if (state.currentUser && state.currentUser.role === 'hoi') {
+        db.collection("teachers")
+            .where("schoolContext", "==", state.currentUser.name)
+            .orderBy("createdAt", "desc")
+            .onSnapshot(s => {
+                state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
+                renderTeacherList();
+            });
+    }
 }
 
 // --- WRITE FUNCTIONS ---
@@ -146,6 +142,7 @@ async function addGlobalSubject() {
     if (name) {
         await db.collection("subjects").add({ name, cat });
         document.getElementById('sub-name').value = '';
+        alert("Subject added to Global Registry!");
     }
 }
 
@@ -174,6 +171,7 @@ async function addTeacher() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         document.getElementById('t-name').value = '';
+        alert("Teacher added successfully!");
     }
 }
 
@@ -184,17 +182,24 @@ async function removeTeacher(id) {
 // --- RENDER FUNCTIONS ---
 function updateHOISubjectDropdown() {
     const select = document.getElementById('t-subject');
-    if (select) {
-        select.innerHTML = '<option value="">Select Subject</option>' + 
-            state.globalSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    if (!select) return;
+
+    if (state.globalSubjects.length === 0) {
+        select.innerHTML = '<option value="">No Subjects Found</option>';
+        return;
     }
+
+    const options = state.globalSubjects.map(s => 
+        `<option value="${s.name}">${s.name}</option>`
+    ).join('');
+
+    select.innerHTML = '<option value="">Select Subject</option>' + options;
 }
 
 function renderTeacherList() {
     const list = document.getElementById('teacher-list');
     if (!list) return;
-    const myTeachers = state.teachers.filter(t => t.schoolContext === state.currentUser.name);
-    list.innerHTML = myTeachers.map(t => `
+    list.innerHTML = state.teachers.map(t => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
             <div><p class="font-bold text-sm">${t.name}</p><p class="text-[10px] text-indigo-400 uppercase">${t.subject}</p></div>
             <button onclick="removeTeacher('${t.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
@@ -220,3 +225,4 @@ function renderSidebar(role) {
 }
 
 function logout() { location.reload(); }
+
