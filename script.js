@@ -1,8 +1,7 @@
 /**
- * WAGOORA V3.0 - CLOUD CORE (HYBRID & FILTERED)
+ * WAGOORA V3.0 - CLOUD CORE (STABLE HYBRID)
  */
 
-// 1. FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBcRfUj9N_9LaVuEuIT7d0ueJ88heyP9hI",
   authDomain: "wagoora-edu-portal.firebaseapp.com",
@@ -12,28 +11,28 @@ const firebaseConfig = {
   appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
 };
 
-// Initialize Firebase
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 2. APP STATE
+// 2. APP STATE WITH HARDCODED REGISTRY
 let state = {
     currentUser: null,
-    globalSubjects: [], 
-    // FIXED SUBJECTS IN FILE (Add your specific local subjects here)
+    // THE MASTER LIST (Hardcoded as requested)
     localSubjects: [
-        { name: "Physics", cat: "Higher Secondary" },
-        { name: "Chemistry", cat: "Higher Secondary" },
-        { name: "Biology", cat: "Higher Secondary" },
-        { name: "Mathematics", cat: "Secondary" },
-        { name: "Social Science", cat: "Secondary" },
-        { name: "General Science", cat: "Middle" }
+        // Foundational
+        { name: "English", cat: "Foundational" },
+        { name: "Mathematics", cat: "Foundational" },
+        { name: "Urdu", cat: "Foundational" },
+        { name: "Kashmiri", cat: "Foundational" },
+        // Primary
+        { name: "EVS", cat: "Primary" },
+        // Middle
+        { name: "Science", cat: "Middle" },
+        { name: "Social Studies", cat: "Middle" }
     ],
-    schools: [],        
-    hois: [],
-    teachers: []
+    cloudSubjects: [], 
+    globalSubjects: [], 
+    schools: [], hois: [], teachers: []
 };
 
 // --- AUTHENTICATION ---
@@ -42,8 +41,7 @@ async function handleLogin() {
         const role = document.getElementById('role-select').value;
         const user = document.getElementById('user-field').value.trim();
         const pass = document.getElementById('pass-field').value.trim();
-
-        if (!user || !pass) return alert("Please fill all fields");
+        if (!user || !pass) return alert("Fill all fields");
 
         if (role === 'superadmin' && user === 'admin' && pass === 'super123') {
             return initPortal('superadmin', 'System Master');
@@ -53,77 +51,50 @@ async function handleLogin() {
             const query = await db.collection("hois").where("username", "==", user).get();
             if (!query.empty) {
                 const data = query.docs[0].data();
-                const validPass = data.password || "welcome@123"; 
-                if (pass === validPass) {
+                if (pass === (data.password || "welcome@123")) {
                     initPortal('hoi', data.schoolName); 
-                } else {
-                    alert("Invalid Password");
-                }
-            } else {
-                alert("HOI Username not found");
-            }
+                } else alert("Invalid Password");
+            } else alert("HOI not found");
             return;
         }
-        
-        if (role === 'teacher' || role === 'student') {
-            initPortal(role, user);
-        }
-    } catch (err) {
-        console.error(err);
-        alert("Login System Error");
-    }
+        initPortal(role, user);
+    } catch (err) { console.error(err); }
 }
 
 function initPortal(role, name) {
     state.currentUser = { role, name };
     document.getElementById('login-screen').classList.add('hidden');
-    const mainDash = document.getElementById('main-dashboard');
-    mainDash.classList.remove('hidden');
-    mainDash.style.display = (window.innerWidth < 1024) ? 'block' : 'grid';
-    
+    document.getElementById('main-dashboard').classList.remove('hidden');
     document.getElementById('nav-info').classList.remove('hidden');
-    document.getElementById('nav-info').style.display = 'flex';
     document.getElementById('display-role').innerText = role;
 
-    document.querySelectorAll('.panel').forEach(p => {
-        p.classList.add('hidden');
-        p.style.display = 'none';
-    });
-    
+    document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
     const activePanel = document.getElementById('panel-' + role);
-    if (activePanel) {
-        activePanel.classList.remove('hidden');
-        activePanel.style.display = 'block';
-    }
+    if (activePanel) activePanel.classList.remove('hidden');
 
-    renderSidebar(role);
     startCloudListeners(); 
 }
 
-// --- CLOUD ENGINE (HYBRID SYNC) ---
+// --- CLOUD ENGINE ---
 function startCloudListeners() {
-    // 1. Sync Schools
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
         renderSchoolList(); 
     });
 
-    // 2. Sync Cloud Subjects & Merge with Local File Subjects
     db.collection("subjects").onSnapshot(s => {
-        const cloudSubjects = s.docs.map(d => d.data());
-        // Combine file-based subjects and cloud subjects
-        state.globalSubjects = [...state.localSubjects, ...cloudSubjects];
+        state.cloudSubjects = s.docs.map(d => d.data());
+        // Merge Hardcoded + Cloud added subjects
+        state.globalSubjects = [...state.localSubjects, ...state.cloudSubjects];
         updateHOISubjectDropdown(); 
     });
 
-    // 3. Sync HOI Registry
     db.collection("hois").onSnapshot(s => {
         state.hois = s.docs.map(d => d.data());
         renderHOIList();
     });
 
-    // 4. Sync Teachers (Filtered by School Context)
-    if (state.currentUser && state.currentUser.role === 'hoi') {
+    if (state.currentUser?.role === 'hoi') {
         db.collection("teachers")
             .where("schoolContext", "==", state.currentUser.name)
             .onSnapshot(s => {
@@ -133,15 +104,69 @@ function startCloudListeners() {
     }
 }
 
+// --- RENDER & HIERARCHY FILTER ---
+function updateHOISubjectDropdown() {
+    const select = document.getElementById('t-subject');
+    if (!select || !state.currentUser) return;
+
+    const schoolName = state.currentUser.name.toLowerCase();
+    
+    // LOGIC: High levels see their own + all levels below them
+    const filtered = state.globalSubjects.filter(sub => {
+        const isFoundational = sub.cat === "Foundational";
+        const isPrimary = sub.cat === "Primary";
+        const isMiddle = sub.cat === "Middle";
+        const isSecondary = sub.cat === "Secondary";
+        const isHigherSec = sub.cat === "Higher Secondary";
+
+        // Higher Secondary Level
+        if (schoolName.includes("higher secondary") || schoolName.includes("hss")) {
+            return sub.name === "English" || isHigherSec; 
+        } 
+        // Secondary Level
+        if (schoolName.includes("secondary") || schoolName.includes("hs")) {
+            return isFoundational || isPrimary || isMiddle || isSecondary;
+        }
+        // Middle Level
+        if (schoolName.includes("middle") || schoolName.includes("ms")) {
+            return isFoundational || isPrimary || isMiddle;
+        }
+        // Primary Level
+        if (schoolName.includes("primary") || schoolName.includes("ps")) {
+            return isFoundational || isPrimary;
+        }
+        // Default (Foundational/Preschool)
+        return isFoundational;
+    });
+
+    if (filtered.length === 0) {
+        select.innerHTML = '<option value="">No subjects match school level</option>';
+        return;
+    }
+
+    select.innerHTML = '<option value="">Select Subject</option>' + 
+        filtered.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+}
+
 // --- WRITE FUNCTIONS ---
 async function addGlobalSubject() {
     const name = document.getElementById('sub-name').value.trim();
     const cat = document.getElementById('sub-cat').value;
     if (name) {
-        // Saves to Firebase Cloud for all schools
         await db.collection("subjects").add({ name, cat });
         document.getElementById('sub-name').value = '';
-        alert("Subject added to Cloud Registry!");
+    }
+}
+
+async function registerNewSchool() {
+    const name = document.getElementById('school-name').value.trim();
+    const loc = document.getElementById('school-location').value.trim();
+    if (name && loc) {
+        await db.collection("schools").add({
+            name, location: loc, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('school-name').value = '';
+        document.getElementById('school-location').value = '';
     }
 }
 
@@ -158,43 +183,9 @@ async function addTeacher() {
     }
 }
 
-// --- RENDER & FILTER FUNCTIONS ---
-
-/**
- * Filters subjects based on school type detected from the name
- */
-function updateHOISubjectDropdown() {
-    const select = document.getElementById('t-subject');
-    if (!select || !state.currentUser) return;
-
-    const schoolName = state.currentUser.name.toLowerCase();
-    
-    const filtered = state.globalSubjects.filter(sub => {
-        // Higher Secondary schools see all subjects
-        if (schoolName.includes("higher secondary")) {
-            return true; 
-        } 
-        // Secondary schools see Secondary, Middle, and Foundational
-        else if (schoolName.includes("secondary")) {
-            return sub.cat === "Secondary" || sub.cat === "Middle" || sub.cat === "Foundational";
-        }
-        // Others (Primary/Middle) see only appropriate levels
-        return sub.cat === "Middle" || sub.cat === "Primary" || sub.cat === "Foundational";
-    });
-
-    if (filtered.length === 0) {
-        select.innerHTML = '<option value="">No Subjects available for your school level</option>';
-        return;
-    }
-
-    select.innerHTML = '<option value="">Select Subject</option>' + 
-        filtered.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-}
-
 function renderTeacherList() {
     const list = document.getElementById('teacher-list');
-    if (!list) return;
-    list.innerHTML = state.teachers.map(t => `
+    if (list) list.innerHTML = state.teachers.map(t => `
         <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/5">
             <div><p class="font-bold text-sm">${t.name}</p><p class="text-[10px] text-indigo-400 uppercase">${t.subject}</p></div>
             <button onclick="removeTeacher('${t.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
@@ -205,22 +196,19 @@ function renderTeacherList() {
 function renderSchoolList() {
     const list = document.getElementById('school-list');
     const dropdown = document.getElementById('hoi-school-select');
-    if (list) list.innerHTML = state.schools.map(s => `<div class="glass p-4 rounded-xl"><p class="font-bold text-sm">${s.name}</p></div>`).join('');
+    if (list) list.innerHTML = state.schools.map(s => `<div class="glass p-4 rounded-xl"><p class="font-bold">${s.name}</p></div>`).join('');
     if (dropdown) dropdown.innerHTML = '<option value="">Select School</option>' + state.schools.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
 }
 
 function renderHOIList() {
     const list = document.getElementById('hoi-list');
-    if (list) list.innerHTML = state.hois.map(h => `<div class="glass p-4 rounded-xl text-left"><p class="text-white text-sm font-bold">${h.username}</p><p class="text-[9px] text-indigo-400 uppercase">${h.schoolName}</p></div>`).join('');
+    if (list) list.innerHTML = state.hois.map(h => `<div class="glass p-4 rounded-xl"><p class="text-sm font-bold">${h.username}</p><p class="text-[9px] uppercase">${h.schoolName}</p></div>`).join('');
 }
 
-function renderSidebar(role) {
-    const sidebar = document.getElementById('sidebar-menu');
-    if (sidebar) sidebar.innerHTML = `<div class="p-4 glass rounded-2xl font-bold text-xs uppercase border-l-4 border-indigo-500">${role} Dashboard</div>`;
-}
-
-async function removeTeacher(id) {
-    if(confirm("Remove?")) await db.collection("teachers").doc(id).delete();
-}
-
+async function removeTeacher(id) { if(confirm("Remove?")) await db.collection("teachers").doc(id).delete(); }
 function logout() { location.reload(); }
+
+
+
+
+
