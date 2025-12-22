@@ -1,5 +1,5 @@
 /**
- * WAGOORA V3.0 - CLOUD CORE (STABLE FIX)
+ * WAGOORA V3.0 - CLOUD CORE (HYBRID & FILTERED)
  */
 
 // 1. FIREBASE CONFIG
@@ -22,6 +22,15 @@ const db = firebase.firestore();
 let state = {
     currentUser: null,
     globalSubjects: [], 
+    // FIXED SUBJECTS IN FILE (Add your specific local subjects here)
+    localSubjects: [
+        { name: "Physics", cat: "Higher Secondary" },
+        { name: "Chemistry", cat: "Higher Secondary" },
+        { name: "Biology", cat: "Higher Secondary" },
+        { name: "Mathematics", cat: "Secondary" },
+        { name: "Social Science", cat: "Secondary" },
+        { name: "General Science", cat: "Middle" }
+    ],
     schools: [],        
     hois: [],
     teachers: []
@@ -61,7 +70,7 @@ async function handleLogin() {
         }
     } catch (err) {
         console.error(err);
-        alert("Login System Error. Check Console.");
+        alert("Login System Error");
     }
 }
 
@@ -91,32 +100,32 @@ function initPortal(role, name) {
     startCloudListeners(); 
 }
 
-// --- CLOUD ENGINE (FIXED NESTING ERROR) ---
+// --- CLOUD ENGINE (HYBRID SYNC) ---
 function startCloudListeners() {
-    // 1. Schools
+    // 1. Sync Schools
     db.collection("schools").onSnapshot(s => {
         state.schools = s.docs.map(d => d.data());
         renderSchoolList(); 
     });
 
-    // 2. Global Subjects
+    // 2. Sync Cloud Subjects & Merge with Local File Subjects
     db.collection("subjects").onSnapshot(s => {
-        state.globalSubjects = s.docs.map(d => d.data());
-        console.log("Subjects received:", state.globalSubjects); 
+        const cloudSubjects = s.docs.map(d => d.data());
+        // Combine file-based subjects and cloud subjects
+        state.globalSubjects = [...state.localSubjects, ...cloudSubjects];
         updateHOISubjectDropdown(); 
     });
 
-    // 3. HOI Registry
+    // 3. Sync HOI Registry
     db.collection("hois").onSnapshot(s => {
         state.hois = s.docs.map(d => d.data());
         renderHOIList();
     });
 
-    // 4. Teacher Registry (Filtered by School)
+    // 4. Sync Teachers (Filtered by School Context)
     if (state.currentUser && state.currentUser.role === 'hoi') {
         db.collection("teachers")
             .where("schoolContext", "==", state.currentUser.name)
-            .orderBy("createdAt", "desc")
             .onSnapshot(s => {
                 state.teachers = s.docs.map(d => ({id: d.id, ...d.data()}));
                 renderTeacherList();
@@ -125,39 +134,14 @@ function startCloudListeners() {
 }
 
 // --- WRITE FUNCTIONS ---
-async function registerNewSchool() {
-    const name = document.getElementById('school-name').value.trim();
-    const loc = document.getElementById('school-location').value.trim();
-    if (name && loc) {
-        await db.collection("schools").add({
-            name, location: loc, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById('school-name').value = '';
-    }
-}
-
 async function addGlobalSubject() {
     const name = document.getElementById('sub-name').value.trim();
     const cat = document.getElementById('sub-cat').value;
     if (name) {
+        // Saves to Firebase Cloud for all schools
         await db.collection("subjects").add({ name, cat });
         document.getElementById('sub-name').value = '';
-        alert("Subject added to Global Registry!");
-    }
-}
-
-async function appointHOI() {
-    const user = document.getElementById('hoi-username').value.trim();
-    const school = document.getElementById('hoi-school-select').value;
-    if (user && school) {
-        await db.collection("hois").add({
-            username: user,
-            password: "welcome@123",
-            schoolName: school,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById('hoi-username').value = '';
-        alert("HOI Appointed!");
+        alert("Subject added to Cloud Registry!");
     }
 }
 
@@ -171,29 +155,40 @@ async function addTeacher() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         document.getElementById('t-name').value = '';
-        alert("Teacher added successfully!");
     }
 }
 
-async function removeTeacher(id) {
-    if(confirm("Remove?")) await db.collection("teachers").doc(id).delete();
-}
+// --- RENDER & FILTER FUNCTIONS ---
 
-// --- RENDER FUNCTIONS ---
+/**
+ * Filters subjects based on school type detected from the name
+ */
 function updateHOISubjectDropdown() {
     const select = document.getElementById('t-subject');
-    if (!select) return;
+    if (!select || !state.currentUser) return;
 
-    if (state.globalSubjects.length === 0) {
-        select.innerHTML = '<option value="">No Subjects Found</option>';
+    const schoolName = state.currentUser.name.toLowerCase();
+    
+    const filtered = state.globalSubjects.filter(sub => {
+        // Higher Secondary schools see all subjects
+        if (schoolName.includes("higher secondary")) {
+            return true; 
+        } 
+        // Secondary schools see Secondary, Middle, and Foundational
+        else if (schoolName.includes("secondary")) {
+            return sub.cat === "Secondary" || sub.cat === "Middle" || sub.cat === "Foundational";
+        }
+        // Others (Primary/Middle) see only appropriate levels
+        return sub.cat === "Middle" || sub.cat === "Primary" || sub.cat === "Foundational";
+    });
+
+    if (filtered.length === 0) {
+        select.innerHTML = '<option value="">No Subjects available for your school level</option>';
         return;
     }
 
-    const options = state.globalSubjects.map(s => 
-        `<option value="${s.name}">${s.name}</option>`
-    ).join('');
-
-    select.innerHTML = '<option value="">Select Subject</option>' + options;
+    select.innerHTML = '<option value="">Select Subject</option>' + 
+        filtered.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
 }
 
 function renderTeacherList() {
@@ -224,5 +219,8 @@ function renderSidebar(role) {
     if (sidebar) sidebar.innerHTML = `<div class="p-4 glass rounded-2xl font-bold text-xs uppercase border-l-4 border-indigo-500">${role} Dashboard</div>`;
 }
 
-function logout() { location.reload(); }
+async function removeTeacher(id) {
+    if(confirm("Remove?")) await db.collection("teachers").doc(id).delete();
+}
 
+function logout() { location.reload(); }
