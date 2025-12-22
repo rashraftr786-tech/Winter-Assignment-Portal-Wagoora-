@@ -6,137 +6,160 @@
     -webkit-tap-highlight-color: transparent; 
 }
 
+:root {
+    --primary: #6366f1;
+    --secondary: #a855f7;
+    --accent: #22d3ee;
+    --danger: #ef4444;
+    --success: #10b981;
+    --bg-dark: #020617;
+    --card-bg: rgba(30, 41, 59, 0.5);
+}
+
 body {
-    background: radial-gradient(circle at top, #0f172a, #020617);
+    background: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg-dark));
     min-height: 100vh;
     color: #f8fafc;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     overflow-x: hidden;
     line-height: 1.6;
 }
 
-/* 2. GLASS EFFECT (Improved for Cross-Device performance) */
+/* 2. ENHANCED GLASSMORPHISM */
 .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px); 
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px); 
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
-/* 3. RESPONSIVE GRID LAYOUTS (The Heart of Cross-Device) */
+.glass:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* 3. MODERNIZED DASHBOARD LAYOUT */
 #main-dashboard {
-    /* Initially set via JS display: none/grid */
     display: none; 
-    grid-template-columns: 1fr; /* Mobile: Single Column */
-    gap: 1.5rem;
-    padding-bottom: 5rem; /* Space for mobile scrolling */
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-@media (min-width: 1024px) {
-    #main-dashboard {
-        grid-template-columns: 280px 1fr !important; /* Fixed Sidebar Width on Desktop */
-        gap: 2rem;
-        padding-bottom: 2rem;
-    }
-}
-
-/* 4. DYNAMIC SIDEBAR (Stacks on Mobile, Sticks on Desktop) */
-#sidebar-menu {
-    display: flex;
-    flex-direction: row; /* Horizontal on mobile */
-    overflow-x: auto;
-    gap: 0.75rem;
-    padding-bottom: 1rem;
-    scrollbar-width: none; /* Hide scrollbar for clean look */
-}
-
-#sidebar-menu::-webkit-scrollbar { display: none; }
-
-@media (min-width: 1024px) {
-    #sidebar-menu {
-        flex-direction: column; /* Vertical on Desktop */
-        position: sticky;
-        top: 100px;
-        overflow-x: visible;
-    }
-}
-
-/* 5. BUTTONS (Refined for Thumbs) */
+/* 4. PREMIUM BUTTONS */
 .btn-glow {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
     border: none;
-    min-height: 52px; 
-    padding: 0 20px;
-    border-radius: 14px;
+    height: 54px; 
+    padding: 0 24px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 10px;
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.btn-glow:active { transform: scale(0.96); }
+.btn-glow:active { 
+    transform: scale(0.95);
+    box-shadow: 0 5px 10px rgba(99, 102, 241, 0.3);
+}
 
-/* 6. FORMS (Zoom-Proof & Mobile Friendly) */
+/* 5. INPUTS & SELECTS (STUNNING FOCUS) */
 input, select, textarea {
-    background: rgba(15, 23, 42, 0.8) !important;
+    background: rgba(15, 23, 42, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: white !important;
-    padding: 16px;
-    border-radius: 14px;
+    padding: 14px 18px;
+    border-radius: 16px;
     outline: none;
     width: 100%;
-    font-size: 16px !important; /* Stops iOS forced zoom */
-    transition: 0.2s border-color;
+    font-size: 16px !important;
+    transition: all 0.3s ease;
 }
 
 input:focus, select:focus, textarea:focus { 
-    border-color: #6366f1 !important; 
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: rgba(15, 23, 42, 0.9) !important;
+    border-color: var(--primary) !important; 
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
 }
 
-/* 7. PANEL VISIBILITY */
-.panel.hidden {
-    display: none !important;
+/* 6. ROLE TAGS (As seen in your screenshot) */
+#display-role {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: 1.5px;
 }
 
-.panel:not(.hidden) {
-    display: block;
-    animation: slideUp 0.4s ease-out forwards;
+/* 7. QUIZ CARDS & FEED */
+#quiz-feed .glass {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 24px;
+    border-left: 4px solid var(--primary);
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* 8. STUDENT QUIZ AREA (Mobile Optimization) */
 .quiz-option-btn {
     width: 100%;
     text-align: left;
-    padding: 18px;
-    margin-bottom: 12px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 20px;
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
     background: rgba(255,255,255,0.03);
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.quiz-option-btn:active {
+    background: var(--primary);
     color: white;
-    font-weight: 500;
-    cursor: pointer;
+    transform: translateX(5px);
 }
 
-.quiz-option-btn:hover {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: #6366f1;
+/* 8. AUTHENTICATION PAGE SPECIFIC */
+#login-screen h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* 9. SCROLLBARS */
-::-webkit-scrollbar { width: 6px; }
+/* 9. STAFF LIST CARDS */
+#teacher-list .glass {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* 10. ANIMATIONS */
+.panel:not(.hidden) {
+    display: block !important;
+    animation: fadeInSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* Scrollbar Style */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
