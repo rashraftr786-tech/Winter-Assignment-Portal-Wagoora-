@@ -2,98 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Winter Assignment Portal | Zone Wagoora</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-    <link rel="stylesheet" href="style.css?v=1.6">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
 
-    <div id="login-screen" class="flex-grow flex items-center justify-center p-6">
-        <div class="glass p-10 w-full max-w-md text-center">
-            <div class="inline-flex p-5 rounded-3xl bg-indigo-600/20 text-indigo-400 mb-6 border border-indigo-500/30">
-                <i class="fas fa-snowflake text-4xl"></i>
+    <div id="login-screen" class="flex-grow flex flex-col items-center justify-center p-6">
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+            <div class="bg-indigo-900 p-8 text-center text-white">
+                <i class="fas fa-snowflake text-4xl mb-4"></i>
+                <h1 class="text-xl font-bold">Winter Assignment Portal</h1>
+                <p class="text-xs opacity-70">Zone Wagoora (Baramulla)</p>
             </div>
-            <h1 class="text-3xl font-black mb-1 tracking-tight">Winter Assignment Portal</h1>
-            <p class="text-indigo-400 text-sm font-bold uppercase tracking-widest mb-8">Zone Wagoora (Baramulla)</p>
-
-            <div class="space-y-4 text-left">
-                <select id="role-select">
-                    <option value="student">Student Account</option>
-                    <option value="teacher">Teacher Account</option>
-                    <option value="hoi">HOI Dashboard</option>
-                    <option value="superadmin">Super Admin</option>
-                </select>
-                
-                <input type="email" id="email-field" placeholder="Email Address">
-                <input type="password" id="pass-field" placeholder="Password">
-                
-                <button type="button" onclick="handleLogin()" class="btn-glow w-full mt-6">
-                    Authorize Access
-                </button>
+            <div class="p-8 space-y-4">
+                <input type="email" id="email-field" placeholder="Email Address" class="w-full p-4 rounded-xl border border-slate-200">
+                <input type="password" id="pass-field" placeholder="Password" class="w-full p-4 rounded-xl border border-slate-200">
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700">Login</button>
+                <p class="text-center text-xs text-slate-400">Forgot Password?</p>
             </div>
         </div>
     </div>
 
-    <div id="main-dashboard" class="hidden flex-grow p-4 lg:p-8">
-        <div id="nav-info" class="hidden justify-between items-center mb-8 px-2">
+    <div id="main-dashboard" class="hidden flex-grow">
+        <div class="bg-indigo-600 p-6 text-white flex items-center gap-4">
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold" id="user-initial">Z</div>
             <div>
-                <span id="display-role" class="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-400"></span>
-                <h2 id="display-name" class="text-2xl font-bold mt-2 text-white">Workspace</h2>
+                <h2 id="display-name" class="font-bold text-lg">Loading...</h2>
+                <p id="display-stats" class="text-xs opacity-80">Class: 5th | 🪙 0 Coins</p>
             </div>
-            <button onclick="logout()" class="w-12 h-12 rounded-2xl glass flex items-center justify-center text-red-400">
-                <i class="fas fa-power-off"></i>
+            <div class="ml-auto flex gap-2">
+                <div id="trophy-slot" class="text-2xl"></div>
+                <button onclick="logout()" class="text-white/80 p-2"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-3 gap-4">
+            <button onclick="showSubjectMenu()" class="menu-card">
+                <div class="icon-circle bg-blue-100 text-blue-600"><i class="fas fa-book"></i></div>
+                <span>Assignments</span>
+            </button>
+            <button onclick="showLeaderboard()" class="menu-card">
+                <div class="icon-circle bg-yellow-100 text-yellow-600"><i class="fas fa-trophy"></i></div>
+                <span>Rankings</span>
+            </button>
+            <button onclick="showProfile()" class="menu-card">
+                <div class="icon-circle bg-purple-100 text-purple-600"><i class="fas fa-user-graduate"></i></div>
+                <span>My Profile</span>
             </button>
         </div>
 
-        <div id="panel-superadmin" class="panel hidden space-y-6">
-            <div class="glass p-6">
-                <h3 class="font-bold mb-4 text-indigo-400">Create Secure Individual Account</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" id="reg-name" placeholder="Full Name (e.g. Zahid)">
-                    <input type="email" id="reg-email" placeholder="Email">
-                    <input type="password" id="reg-pass" placeholder="Password">
-                    <select id="reg-role">
-                        <option value="student">Student</option>
-                        <option value="teacher">Teacher</option>
-                    </select>
-                    <input type="text" id="reg-school" placeholder="School Name">
-                    <input type="text" id="reg-class" placeholder="Class">
-                </div>
-                <button onclick="createNewSecureUser()" class="w-full mt-4">Generate Account</button>
-            </div>
-        </div>
-
-        <div id="panel-teacher" class="panel hidden space-y-6">
-            <div class="glass p-6">
-                <h3 class="font-bold mb-4 text-indigo-400">Post Assignment</h3>
-                <input type="text" id="quiz-title" placeholder="Topic" class="mb-3">
-                <textarea id="quiz-question" placeholder="Details" class="mb-4 h-24"></textarea>
-                <button onclick="postQuiz()" class="w-full">Publish to Students</button>
-            </div>
-        </div>
-
-        <div id="panel-student" class="panel hidden space-y-6">
-            <div id="quiz-feed" class="space-y-4 pb-20"></div>
-        </div>
+        <div id="quiz-container" class="px-6 pb-20"></div>
     </div>
 
-    <footer class="p-6 text-center border-t border-white/5 bg-black/20">
-        <p class="text-slate-500 text-[11px] leading-relaxed">
+    <footer class="bg-white border-t border-slate-100 p-4 text-center">
+        <p class="text-[10px] text-slate-400 leading-tight">
             Designed and developed by:<br>
-            <span class="text-indigo-400 font-bold">Mohammad Ashraf Rather</span><br>
+            <span class="text-slate-700 font-bold uppercase">Mohammad Ashraf Rather</span><br>
             Govt. Primary School Pethgam Wagoora | Near ZEO Office Wagoora
         </p>
     </footer>
 
-    <script src="script.js?v=1.6"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+
