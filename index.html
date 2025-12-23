@@ -21,7 +21,6 @@
         .tab-inactive { @apply text-slate-300; }
         .quiz-option { @apply w-full p-4 bg-white border-2 border-slate-100 rounded-2xl text-left font-bold text-slate-600 active:scale-95 transition-all flex justify-between items-center mb-3; }
         
-        /* Trophy Colors */
         .trophy-gold { background: #fbbf24; color: #78350f; border: 2px solid white; }
         .trophy-silver { background: #cbd5e1; color: #475569; border: 2px solid white; }
         .trophy-bronze { background: #fb923c; color: #7c2d12; border: 2px solid white; }
@@ -75,11 +74,11 @@
         <div class="app-gradient p-8 pb-20 rounded-b-[3rem] text-white shadow-xl relative">
             <div class="flex justify-between items-start mb-6">
                 <div>
-                    <h2 id="user-name" class="text-2xl font-black">Welcome!</h2>
+                    <h2 id="user-name" class="text-2xl font-black text-white">Welcome!</h2>
                     <p id="user-subtext" class="text-indigo-100 text-xs font-bold uppercase opacity-80 tracking-widest"></p>
                 </div>
-                <button onclick="logout()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md hover:bg-white/20">
-                    <i class="fas fa-sign-out-alt"></i>
+                <button onclick="logout()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
+                    <i class="fas fa-sign-out-alt text-white"></i>
                 </button>
             </div>
             
@@ -89,7 +88,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] uppercase font-black opacity-70">Rank: <span id="user-rank-text">Learner</span></p>
-                    <p class="text-2xl font-black leading-none mt-1"><span id="user-coins">0</span> <span class="text-xs opacity-60">Coins</span></p>
+                    <p class="text-2xl font-black leading-none mt-1 text-white"><span id="user-coins">0</span> <span class="text-xs opacity-60">Coins</span></p>
                 </div>
             </div>
         </div>
@@ -106,7 +105,7 @@
                     <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
                     <div>
                         <p class="font-bold text-slate-800">Login Bonus</p>
-                        <p class="text-xs text-slate-400">Daily streak: 1 Day</p>
+                        <p class="text-xs text-slate-400">Daily streak active</p>
                     </div>
                     <div class="ml-auto font-black text-green-500">+10</div>
                 </div>
@@ -118,14 +117,14 @@
             </div>
         </div>
 
-        <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-100 px-10 py-5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
-            <button onclick="switchTab('home')" id="nav-home" class="tab-active flex flex-col items-center transition-all">
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-10 py-5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
+            <button onclick="switchTab('home')" id="nav-home" class="tab-active flex flex-col items-center">
                 <i class="fas fa-home text-xl"></i><span class="text-[10px] font-bold mt-1">Home</span>
             </button>
-            <button onclick="switchTab('tasks')" id="nav-tasks" class="tab-inactive flex flex-col items-center transition-all">
+            <button onclick="switchTab('tasks')" id="nav-tasks" class="tab-inactive flex flex-col items-center">
                 <i class="fas fa-tasks text-xl"></i><span class="text-[10px] font-bold mt-1">Tasks</span>
             </button>
-            <button onclick="switchTab('rewards')" id="nav-rewards" class="tab-inactive flex flex-col items-center transition-all">
+            <button onclick="switchTab('rewards')" id="nav-rewards" class="tab-inactive flex flex-col items-center">
                 <i class="fas fa-award text-xl"></i><span class="text-[10px] font-bold mt-1">Leader</span>
             </button>
         </nav>
@@ -133,7 +132,7 @@
 
     <div id="mcq-modal" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-300 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-300"><i class="fas fa-times text-xl"></i></button>
             <h2 id="modal-title" class="text-2xl font-black text-slate-800 mb-1">Subject</h2>
             <p id="modal-subtitle" class="text-xs text-indigo-600 font-bold uppercase mb-6 tracking-widest"></p>
 
@@ -154,8 +153,7 @@
                 </div>
                 <select id="correct-opt" class="input-style font-bold text-indigo-600">
                     <option value="">Correct Answer</option>
-                    <option value="A">A</option><option value="B">B</option>
-                    <option value="C">C</option><option value="D">D</option>
+                    <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
                 </select>
                 <button onclick="saveQuestion()" class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg">Save Question</button>
             </div>
@@ -184,7 +182,6 @@
         const auth = firebase.auth();
         let currentUser = null;
 
-        // AUTH FUNCTIONS
         async function handleLogin() {
             const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-pass').value;
@@ -201,37 +198,23 @@
 
         async function handleSignup() {
             const role = document.getElementById('reg-role').value;
-            const email = document.getElementById('reg-email').value.trim();
-            const pass = document.getElementById('reg-pass').value;
             try {
-                const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                const cred = await auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, document.getElementById('reg-pass').value);
                 const data = {
                     uid: cred.user.uid, fullName: document.getElementById('reg-name').value,
-                    role: role, email: email, approved: false,
+                    role: role, email: document.getElementById('reg-email').value, approved: false,
                     school: document.getElementById('reg-school').value, coins: 0,
                     grade: role === 'student' ? document.getElementById('reg-grade').value : 'Staff'
                 };
                 await db.collection("users").doc(cred.user.uid).set(data);
-                alert("Registered! Contact HOI for approval.");
+                alert("Account created. Wait for HOI approval.");
                 location.reload();
             } catch (e) { alert(e.message); }
         }
 
-        // UI NAVIGATION
-        function switchTab(name) {
-            ['home', 'tasks', 'rewards'].forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('nav-' + t).classList.replace('tab-active', 'tab-inactive');
-            });
-            document.getElementById('tab-' + name).classList.remove('hidden');
-            document.getElementById('nav-' + name).classList.replace('tab-inactive', 'tab-active');
-            if(name === 'rewards') fetchLeaderboard();
-        }
-
-        // TROPHY LOGIC
         function updateDashboardUI() {
             document.getElementById('user-name').innerText = currentUser.fullName;
-            document.getElementById('user-subtext').innerText = `Class ${currentUser.grade} | ${currentUser.school}`;
+            document.getElementById('user-subtext').innerText = `${currentUser.role === 'teacher' ? 'Staff' : 'Class ' + currentUser.grade} | ${currentUser.school}`;
             document.getElementById('user-coins').innerText = currentUser.coins || 0;
             
             const trophy = document.getElementById('trophy-container');
@@ -244,12 +227,21 @@
             
             const grid = document.getElementById('subject-grid');
             grid.innerHTML = '';
+            
+            // Logic to determine subjects
             let subs = ["English", "Mathematics", "Urdu", "Kashmiri"];
-            if (currentUser.role === 'teacher') subs.push("EVS", "Science", "S.St");
-            else {
-                if(["3rd","4th","5th"].includes(currentUser.grade)) subs.push("EVS");
-                if(["6th","7th","8th"].includes(currentUser.grade)) subs.push("EVS", "Science", "S.St");
+            
+            if (currentUser.role === 'teacher') {
+                subs = ["English", "Mathematics", "Urdu", "Kashmiri", "EVS", "Science", "S.St"];
+            } else {
+                const grade = currentUser.grade;
+                if (["3rd", "4th", "5th"].includes(grade)) {
+                    subs.push("EVS");
+                } else if (["6th", "7th", "8th"].includes(grade)) {
+                    subs.push("EVS", "Science", "S.St");
+                }
             }
+
             subs.forEach(s => {
                 const d = document.createElement('div');
                 d.className = "bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-all";
@@ -258,6 +250,184 @@
                 grid.appendChild(d);
             });
         }
+
+        function switchTab(name) {
+            ['home', 'tasks', 'rewards'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('nav-' + t).classList.replace('tab-active', 'tab-inactive');
+            });
+            document.getElementById('tab-' + name).classList.remove('hidden');
+            document.getElementById('nav-' + name).classList.replace('tab-inactive', 'tab-active');
+            if(name === 'rewards') fetchLeaderboard();
+        }
+
+        async function fetchLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '<p class="text-center py-10 opacity-50">Loading ranks...</p>';
+            try {
+                const snap = await db.collection("users").where("role", "==", "student").orderBy("coins", "desc").limit(20).get();
+                list.innerHTML = '';
+                let r = 1;
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    const d = document.createElement('div');
+                    d.className = `flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm ${doc.id === currentUser.uid ? 'border-indigo-400 ring-1 ring-indigo-400' : ''}`;
+                    d.innerHTML = `<div class="flex items-center gap-4"><span class="w-4 font-black text-slate-300 text-sm">${r}</span><div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">${u.fullName.charAt(0)}</div><div><p class="font-bold text-sm">${u.fullName}</p><p class="text-[9px] uppercase font-bold opacity-40">${u.school}</p></div></div><div class="text-right"><p class="font-black text-indigo-600">${u.coins}</p></div>`;
+                    list.appendChild(d);
+                    r++;
+                });
+            } catch (e) { list.innerHTML = "Leaderboard Setup in Progress..."; }
+        }
+
+        function openSubject(name) {
+            const m = document.getElementById('mcq-modal');
+            document.getElementById('modal-title').innerText = name;
+            m.dataset.sub = name;
+            m.classList.remove('hidden');
+            if (currentUser.role === 'teacher') {
+                document.getElementById('uploader-form').classList.remove('hidden');
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('modal-subtitle').innerText = "Staff Dashboard";
+            } else {
+                document.getElementById('uploader-form').classList.add('hidden');
+                document.getElementById('quiz-container').classList.remove('hidden');
+                document.getElementById('modal-subtitle').innerText = `Class ${currentUser.grade} Quiz`;
+                loadQuiz(name);
+            }
+        }
+
+        async function loadQuiz(subject) {
+            const qT = document.getElementById('active-q-text');
+            const oG = document.getElementById('options-grid');
+            oG.innerHTML = ''; qT.innerText = "Finding question...";
+            const snap = await db.collection("questions").where("subject","==",subject).where("targetGrade","==",currentUser.grade).limit(1).get();
+            if(snap.empty) { qT.innerText = "No questions uploaded yet."; return; }
+            const q = snap.docs[0].data();
+            qT.innerText = q.question;
+            ['A','B','C','D'].forEach(l => {
+                if(q.options[l]) {
+                    const b = document.createElement('button');
+                    b.className = "quiz-option";
+                    b.innerHTML = `<span>${l}. ${q.options[l]}</span><i class="fas fa-chevron-right opacity-10"></i>`;
+                    b.onclick = () => checkAns(l, q.answer);
+                    oG.appendChild(b);
+                }
+            });
+        }
+
+        async function checkAns(sel, cor) {
+            if(sel === cor) {
+                alert("🎉 Correct! +5 Coins");
+                const nc = (currentUser.coins || 0) + 5;
+                await db.collection("users").doc(auth.currentUser.uid).update({ coins: nc });
+                currentUser.coins = nc; updateDashboardUI(); closeModal();
+            } else { alert("❌ Wrong Answer. Try again!"); }
+        }
+
+        async function saveQuestion() {
+            const d = {
+                subject: document.getElementById('mcq-modal').dataset.sub,
+                targetGrade: document.getElementById('target-grade').value,
+                question: document.getElementById('q-text').value,
+                answer: document.getElementById('correct-opt').value,
+                options: { A: document.getElementById('opt-a').value, B: document.getElementById('opt-b').value, C: document.getElementById('opt-c').value, D: document.getElementById('opt-d').value }
+            };
+            if(!d.targetGrade || !d.answer) return alert("Fill all fields");
+            await db.collection("questions").add(d);
+            alert("Saved!"); closeModal();
+        }
+
+        function closeModal() { document.getElementById('mcq-modal').classList.add('hidden'); }
+        function toggleView() { document.getElementById('login-box').classList.toggle('hidden'); document.getElementById('signup-box').classList.toggle('hidden'); }
+        function updateFormFields() { document.getElementById('student-extra-fields').classList.toggle('hidden', document.getElementById('reg-role').value === 'teacher'); }
+        function logout() { auth.signOut().then(() => location.reload()); }
+    </script>
+</body>
+</html>
+
+
+
+
+        
+                
+                
+                
+                
+                
+                            
+                const snap = await db.collection("users").where("role", "==", "student").orderBy("coins", "desc").limit(20).get();
+                list.innerHTML = '';
+                let r = 1;
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    const d = document.createElement('div');
+                    d.className = `flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm ${doc.id === currentUser.uid ? 'border-indigo-400 ring-1 ring-indigo-400' : ''}`;
+                    d.innerHTML = `<div class="flex items-center gap-4"><span class="w-4 font-black text-slate-300 text-sm">${r}</span><div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">${u.fullName.charAt(0)}</div><div><p class="font-bold text-sm">${u.fullName}</p><p class="text-[9px] uppercase font-bold opacity-40">${u.school}</p></div></div><div class="text-right"><p class="font-black text-indigo-600">${u.coins}</p></div>`;
+                    list.appendChild(d);
+                    r++;
+                });
+            } catch (e) { list.innerHTML = "Leaderboard Setup in Progress..."; }
+        }
+
+        function openSubject(name) {
+            const m = document.getElementById('mcq-modal');
+            document.getElementById('modal-title').innerText = name;
+            m.dataset.sub = name;
+            m.classList.remove('hidden');
+            if (currentUser.role === 'teacher') {
+                document.getElementById('uploader-form').classList.remove('hidden');
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('modal-subtitle').innerText = "Staff Dashboard";
+            } else {
+                document.getElementById('uploader-form').classList.add('hidden');
+                document.getElementById('quiz-container').classList.remove('hidden');
+                document.getElementById('modal-subtitle').innerText = `Class ${currentUser.grade} Quiz`;
+                loadQuiz(name);
+            }
+        }
+
+        async function loadQuiz(subject) {
+            const qT = document.getElementById('active-q-text');
+            const oG = document.getElementById('options-grid');
+            oG.innerHTML = ''; qT.innerText = "Finding question...";
+            const snap = await db.collection("questions").where("subject","==",subject).where("targetGrade","==",currentUser.grade).limit(1).get();
+            if(snap.empty) { qT.innerText = "No questions uploaded yet."; return; }
+            const q = snap.docs[0].data();
+            qT.innerText = q.question;
+            ['A','B','C','D'].forEach(l => {
+                if(q.options[l]) {
+                    const b = document.createElement('button');
+                    b.className = "quiz-option";
+                    b.innerHTML = `<span>${l}. ${q.options[l]}</span><i class="fas fa-chevron-right opacity-10"></i>`;
+                    b.onclick = () => checkAns(l, q.answer);
+                    oG.appendChild(b);
+                }
+            });
+        }
+
+        async function checkAns(sel, cor) {
+            if(sel === cor) {
+                alert("🎉 Correct! +5 Coins");
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-800">Login Bonus</p>
+                        <p class="text-xs text-slate-400">Daily streak: 1 Day</p>
+                    </div>
+                    <div class="ml-auto font-black text-green-500">+10</div>
+                </div>
+            </div>
+
+            <div id="tab-rewards" class="hidden space-y-4">
+                <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest ml-1">Global Top 20</h3>
+                <div id="leaderboard-list" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-100 px-10 py-5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
+            <button onclick="switchTab('home')" id="nav-home" class="tab-active flex flex-col items-center transition-all">
+                <i class="fas fa-home text-xl"></i><span class="text-[10px] font-bold mt-1">Home</span>
+            </button>
 
         // LEADERBOARD
         async function fetchLeaderboard() {
