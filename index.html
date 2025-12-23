@@ -8,7 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -20,10 +19,9 @@
         .tab-active { @apply text-indigo-600; }
         .tab-inactive { @apply text-slate-300; }
         .quiz-option { @apply w-full p-4 bg-white border-2 border-slate-100 rounded-2xl text-left font-bold text-slate-600 active:scale-95 transition-all flex justify-between items-center mb-3; }
-        .trophy-gold { background: #fbbf24; color: #78350f; border: 2px solid white; box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.4); }
-        .trophy-silver { background: #cbd5e1; color: #475569; border: 2px solid white; box-shadow: 0 10px 15px -3px rgba(148, 163, 184, 0.4); }
-        .trophy-bronze { background: #fb923c; color: #7c2d12; border: 2px solid white; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
-        .dev-footer { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; opacity: 0.6; text-align: center; margin-top: 20px; color: #6366f1; }
+        .trophy-gold { background: #fbbf24; color: #78350f; border: 2px solid white; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); }
+        .trophy-silver { background: #cbd5e1; color: #475569; border: 2px solid white; box-shadow: 0 4px 15px rgba(148, 163, 184, 0.4); }
+        .trophy-bronze { background: #fb923c; color: #7c2d12; border: 2px solid white; box-shadow: 0 4px 15px rgba(251, 146, 60, 0.4); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -33,7 +31,7 @@
             <div class="text-center mb-8">
                 <div class="w-16 h-16 app-gradient rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-lg"><i class="fas fa-graduation-cap text-white text-2xl"></i></div>
                 <h1 class="text-2xl font-black text-slate-800 tracking-tight">Zone Wagoora</h1>
-                <p class="text-slate-500 text-sm">Winter Assignment Portal</p>
+                <p class="text-slate-500 text-sm italic">Winter Assignment Portal</p>
             </div>
 
             <div id="login-box" class="space-y-4">
@@ -65,10 +63,10 @@
                 <p class="text-center text-sm text-slate-500">Back to <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Login</span></p>
             </div>
 
-            <div class="dev-footer mt-8">
-                Designed & Developed by<br>
-                <span class="text-indigo-900">Mohammad Ashraf Rather</span><br>
-                <span class="opacity-50">Teacher GPS Pethgam Wagoora</span>
+            <div class="mt-10 text-center">
+                <p class="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Designed & Developed By</p>
+                <p class="text-xs font-bold text-slate-800">Mohammad Ashraf Rather</p>
+                <p class="text-[10px] text-slate-400">Teacher GPS Pethgam Wagoora</p>
             </div>
         </div>
     </div>
@@ -77,21 +75,17 @@
         <div class="app-gradient p-8 pb-20 rounded-b-[3rem] text-white shadow-xl relative">
             <div class="flex justify-between items-start mb-6">
                 <div>
-                    <h2 id="user-name" class="text-2xl font-black">Welcome!</h2>
+                    <h2 id="user-name-display" class="text-2xl font-black">Welcome!</h2>
                     <p id="user-subtext" class="text-indigo-100 text-xs font-bold uppercase tracking-widest opacity-80"></p>
                 </div>
-                <button onclick="logout()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+                <button onclick="logout()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md"><i class="fas fa-sign-out-alt"></i></button>
             </div>
             
             <div class="bg-white/10 p-5 rounded-[2rem] backdrop-blur-md flex items-center gap-4 border border-white/10">
-                <div id="trophy-container" class="w-12 h-12 rounded-full flex items-center justify-center text-xl bg-white/20">
-                    <i id="trophy-icon" class="fas fa-medal"></i>
-                </div>
+                <div id="trophy-container" class="w-12 h-12 rounded-full flex items-center justify-center text-xl bg-white/20"><i id="trophy-icon" class="fas fa-medal"></i></div>
                 <div>
                     <p class="text-[10px] uppercase font-black opacity-70 tracking-tighter">Rank: <span id="user-rank-text">Learner</span></p>
-                    <p class="text-2xl font-black leading-none mt-1"><span id="user-coins">0</span> <span class="text-xs opacity-60">Coins</span></p>
+                    <p class="text-2xl font-black leading-none mt-1"><span id="user-coins-display">0</span> <span class="text-xs opacity-60 font-medium">Coins</span></p>
                 </div>
             </div>
         </div>
@@ -104,20 +98,16 @@
 
             <div id="tab-tasks" class="hidden space-y-4">
                 <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest ml-1">Daily Challenges</h3>
-                <div id="daily-bonus-card" class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-4 transition-all">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-4">
                     <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-calendar-check"></i></div>
-                    <div class="flex-1"><p class="font-bold text-slate-800">Daily Login Bonus</p><p id="bonus-status" class="text-xs text-slate-400">Claim 10 coins</p></div>
-                    <button id="claim-btn" onclick="claimDailyBonus()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md active:scale-95">CLAIM</button>
+                    <div class="flex-1"><p class="font-bold text-slate-800 text-sm">Daily Login Bonus</p><p id="bonus-status" class="text-[10px] text-slate-400">Claim 10 coins daily</p></div>
+                    <button id="claim-btn" onclick="claimDailyBonus()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] shadow-md active:scale-95">CLAIM</button>
                 </div>
             </div>
 
             <div id="tab-rewards" class="hidden space-y-4">
                 <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest ml-1">Global Top 20</h3>
                 <div id="leaderboard-list" class="space-y-3"></div>
-            </div>
-            
-            <div class="dev-footer opacity-30 mt-12 mb-8">
-                Designed & Developed by Mohammad Ashraf Rather<br>Teacher GPS Pethgam Wagoora
             </div>
         </div>
 
@@ -132,18 +122,16 @@
         <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative max-h-[85vh] overflow-y-auto">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-300"><i class="fas fa-times text-xl"></i></button>
             <h2 id="modal-title" class="text-2xl font-black text-slate-800 mb-1">Subject</h2>
-            <p id="modal-subtitle" class="text-xs text-indigo-600 font-bold uppercase mb-6 tracking-widest"></p>
-
+            <p id="modal-subtitle" class="text-[10px] text-indigo-600 font-black uppercase mb-6 tracking-widest"></p>
             <div id="uploader-form" class="hidden space-y-4">
                 <select id="target-grade" class="input-style font-bold"><option value="">Select Target Class</option><option value="1st">Class 1st</option><option value="2nd">Class 2nd</option><option value="3rd">Class 3rd</option><option value="4th">Class 4th</option><option value="5th">Class 5th</option><option value="6th">Class 6th</option><option value="7th">Class 7th</option><option value="8th">Class 8th</option></select>
-                <textarea id="q-text" placeholder="Type Question..." class="input-style h-24 p-4"></textarea>
-                <div class="grid grid-cols-2 gap-3"><input type="text" id="opt-a" placeholder="Option A" class="input-style p-3"><input type="text" id="opt-b" placeholder="Option B" class="input-style p-3"><input type="text" id="opt-c" placeholder="Option C" class="input-style p-3"><input type="text" id="opt-d" placeholder="Option D" class="input-style p-3"></div>
-                <select id="correct-opt" class="input-style font-bold text-indigo-600"><option value="">Select Correct Option</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
-                <button onclick="saveQuestion()" class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg">Upload Question</button>
+                <textarea id="q-text" placeholder="Type Question..." class="input-style h-20"></textarea>
+                <div class="grid grid-cols-2 gap-2"><input type="text" id="opt-a" placeholder="A" class="input-style p-3"><input type="text" id="opt-b" placeholder="B" class="input-style p-3"><input type="text" id="opt-c" placeholder="C" class="input-style p-3"><input type="text" id="opt-d" placeholder="D" class="input-style p-3"></div>
+                <select id="correct-opt" class="input-style font-bold text-indigo-600"><option value="">Correct Answer</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                <button onclick="saveQuestion()" class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg">Upload Now</button>
             </div>
-
-            <div id="quiz-container" class="hidden space-y-6">
-                <div class="p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200"><p id="active-q-text" class="font-bold text-slate-800 text-lg text-center leading-tight">Loading Assignment...</p></div>
+            <div id="quiz-container" class="hidden space-y-4">
+                <div class="p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200"><p id="active-q-text" class="font-bold text-slate-800 text-lg text-center"></p></div>
                 <div id="options-grid" class="space-y-1"></div>
             </div>
         </div>
@@ -158,50 +146,46 @@
             messagingSenderId: "476444772096",
             appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         let currentUser = null;
 
         async function handleLogin() {
-            const email = document.getElementById('login-email').value.trim();
-            const pass = document.getElementById('login-pass').value;
+            const e = document.getElementById('login-email').value.trim();
+            const p = document.getElementById('login-pass').value;
+            if(!e || !p) return alert("Enter credentials");
             try {
-                const cred = await auth.signInWithEmailAndPassword(email, pass);
+                const cred = await auth.signInWithEmailAndPassword(e, p);
                 const doc = await db.collection("users").doc(cred.user.uid).get();
-                currentUser = doc.data();
-                if (!currentUser.approved) { alert("Awaiting HOI Approval"); auth.signOut(); return; }
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app-dashboard').classList.remove('hidden');
-                updateDashboardUI();
-            } catch (e) { alert("Login failed. Check credentials."); }
+                if(doc.exists && doc.data().approved) {
+                    currentUser = doc.data();
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('app-dashboard').classList.remove('hidden');
+                    updateDashboardUI();
+                } else { alert("Awaiting HOI Approval"); auth.signOut(); }
+            } catch (err) { alert("Invalid email or password"); }
         }
 
         async function handleSignup() {
-            const role = document.getElementById('reg-role').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
-            const name = document.getElementById('reg-name').value;
-            const school = document.getElementById('reg-school').value;
-            if(!email || !pass || !name) return alert("Fill all fields");
+            const r = document.getElementById('reg-role').value;
+            const e = document.getElementById('reg-email').value.trim();
+            const p = document.getElementById('reg-pass').value;
+            const n = document.getElementById('reg-name').value;
+            if(!e || !p || !n) return alert("Fill all fields");
             try {
-                const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                const data = {
-                    uid: cred.user.uid, fullName: name,
-                    role: role, email: email, approved: false,
-                    school: school, coins: 0, lastBonus: null,
-                    grade: role === 'student' ? document.getElementById('reg-grade').value : 'Staff'
-                };
+                const cred = await auth.createUserWithEmailAndPassword(e, p);
+                const data = { uid: cred.user.uid, fullName: n, role: r, email: e, approved: false, school: document.getElementById('reg-school').value, coins: 0, grade: r === 'student' ? document.getElementById('reg-grade').value : 'Staff', lastBonus: null };
                 await db.collection("users").doc(cred.user.uid).set(data);
-                alert("Account created. Please wait for HOI approval.");
+                alert("Account created. Wait for HOI approval.");
                 location.reload();
-            } catch (e) { alert(e.message); }
+            } catch (err) { alert(err.message); }
         }
 
         function updateDashboardUI() {
-            document.getElementById('user-name').innerText = currentUser.fullName;
+            document.getElementById('user-name-display').innerText = currentUser.fullName;
             document.getElementById('user-subtext').innerText = `${currentUser.role === 'teacher' ? 'Staff' : 'Class ' + currentUser.grade} | ${currentUser.school}`;
-            document.getElementById('user-coins').innerText = currentUser.coins || 0;
+            document.getElementById('user-coins-display').innerText = currentUser.coins || 0;
             
             const trophy = document.getElementById('trophy-container');
             const rankText = document.getElementById('user-rank-text');
@@ -210,49 +194,31 @@
             if(c >= 7500) { trophy.className = "w-12 h-12 rounded-full flex items-center justify-center text-xl trophy-gold"; rankText.innerText = "Gold Elite"; }
             else if(c >= 5000) { trophy.className = "w-12 h-12 rounded-full flex items-center justify-center text-xl trophy-silver"; rankText.innerText = "Silver Pro"; }
             else if(c >= 2500) { trophy.className = "w-12 h-12 rounded-full flex items-center justify-center text-xl trophy-bronze"; rankText.innerText = "Bronze Star"; }
+            else { trophy.className = "w-12 h-12 rounded-full flex items-center justify-center text-xl bg-white/20"; rankText.innerText = "Learner"; }
             
             const grid = document.getElementById('subject-grid');
             grid.innerHTML = '';
             let subs = ["English", "Mathematics", "Urdu", "Kashmiri"];
             if (currentUser.role === 'teacher') {
-                subs = ["English", "Mathematics", "Urdu", "Kashmiri", "EVS", "Science", "S.St"];
+                subs = ["English", "Mathematics", "Urdu", "Kashmiri", "EVS", "Science", "Social Studies"];
             } else {
                 const g = currentUser.grade;
                 if (["3rd", "4th", "5th"].includes(g)) subs.push("EVS");
-                if (["6th", "7th", "8th"].includes(g)) subs.push("EVS", "Science", "S.St");
+                if (["6th", "7th", "8th"].includes(g)) subs.push("EVS", "Science", "Social Studies");
             }
             subs.forEach(s => {
                 const d = document.createElement('div');
                 d.className = "bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-all";
                 d.onclick = () => openSubject(s);
-                d.innerHTML = `<div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-2"><i class="fas fa-book-open"></i></div><span class="font-bold text-[11px]">${s}</span>`;
+                d.innerHTML = `<div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-2"><i class="fas fa-book-open"></i></div><span class="font-bold text-[11px] text-center">${s}</span>`;
                 grid.appendChild(d);
             });
-            checkBonusStatus();
-        }
-
-        function checkBonusStatus() {
-            const last = currentUser.lastBonus ? currentUser.lastBonus.toDate().toDateString() : "";
-            const today = new Date().toDateString();
-            if(last === today) {
-                document.getElementById('bonus-status').innerText = "Already Claimed Today";
-                document.getElementById('claim-btn').disabled = true;
-                document.getElementById('claim-btn').classList.replace('bg-indigo-600', 'bg-slate-200');
-                document.getElementById('claim-btn').classList.add('text-slate-400');
-            }
-        }
-
-        async function claimDailyBonus() {
-            const nc = (currentUser.coins || 0) + 10;
-            await db.collection("users").doc(auth.currentUser.uid).update({ coins: nc, lastBonus: firebase.firestore.FieldValue.serverTimestamp() });
-            alert("🎉 10 Coins added!");
-            currentUser.coins = nc; currentUser.lastBonus = firebase.firestore.Timestamp.now();
-            updateDashboardUI();
+            checkBonus();
         }
 
         async function fetchLeaderboard() {
             const list = document.getElementById('leaderboard-list');
-            list.innerHTML = '<p class="text-center py-10 opacity-50 text-xs">Syncing Rankings...</p>';
+            list.innerHTML = '<p class="text-center py-10 opacity-50 text-xs">Syncing rankings...</p>';
             try {
                 const snap = await db.collection("users").where("role", "==", "student").orderBy("coins", "desc").limit(20).get();
                 list.innerHTML = '';
@@ -266,17 +232,22 @@
                     list.appendChild(d);
                     r++;
                 });
-            } catch (e) { list.innerHTML = "<p class='text-xs text-center opacity-40 py-10'>Setup Indexes in Firebase Console to view Leaderboard.</p>"; }
+            } catch (e) { list.innerHTML = "<p class='text-xs text-center opacity-40 py-10'>Leaderboard syncing...</p>"; }
         }
 
-        function switchTab(name) {
-            ['home', 'tasks', 'rewards'].forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('nav-' + t).classList.replace('tab-active', 'tab-inactive');
-            });
-            document.getElementById('tab-' + name).classList.remove('hidden');
-            document.getElementById('nav-' + name).classList.replace('tab-inactive', 'tab-active');
-            if(name === 'rewards') fetchLeaderboard();
+        function checkBonus() {
+            if(!currentUser.lastBonus) return;
+            if(currentUser.lastBonus.toDate().toDateString() === new Date().toDateString()) {
+                const b = document.getElementById('claim-btn');
+                b.disabled = true; b.innerText = "DONE"; b.className = "bg-slate-100 text-slate-400 px-4 py-2 rounded-xl font-bold text-[10px]";
+            }
+        }
+
+        async function claimDailyBonus() {
+            const nc = (currentUser.coins || 0) + 10;
+            await db.collection("users").doc(currentUser.uid).update({ coins: nc, lastBonus: firebase.firestore.FieldValue.serverTimestamp() });
+            currentUser.coins = nc; currentUser.lastBonus = firebase.firestore.Timestamp.now();
+            updateDashboardUI(); alert("Bonus claimed!");
         }
 
         function openSubject(name) {
@@ -286,37 +257,22 @@
             m.classList.remove('hidden');
             if (currentUser.role === 'teacher') {
                 document.getElementById('uploader-form').classList.remove('hidden');
-                document.getElement
-                    
-                    
-                    
-                    
-                    
-                            const d = document.createElement('div');
-                    d.className = `flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm ${doc.id === currentUser.uid ? 'border-indigo-400 ring-1 ring-indigo-400' : ''}`;
-                    d.innerHTML = `<div class="flex items-center gap-4"><span class="w-4 font-black text-slate-300 text-sm">${r}</span><div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">${u.fullName.charAt(0)}</div><div><p class="font-bold text-sm">${u.fullName}</p><p class="text-[9px] uppercase font-bold opacity-40">${u.school}</p></div></div><div class="text-right"><p class="font-black text-indigo-600">${u.coins}</p></div>`;
-                    list.appendChild(d);
-                    r++;
-                });
-            } catch (e) { list.innerHTML = "Leaderboard Setup in Progtion openSubject(name) {
-            const m = document.getElementById('mcq-modal');
-            document.getElementById('modal-title').innerText = name;
-            m.dataset.sub = name;
-            m.classList.remove('hidden');
-            if (currentUser.role === 'teacher') {
-                document.getElementById('uploader-form').classList.remove('hidden');
                 document.getElementById('quiz-container').classList.add('hidden');
-                document.getElementById('modal-subtitle').innerText = "Staff Dashboard";
+                document.getElementById('modal-subtitle').innerText = "Admin: Upload Assignment";
             } else {
                 document.getElementById('uploader-form').classList.add('hidden');
                 document.getElementById('quiz-container').classList.remove('hidden');
-                document.getElementById('modal-subtitle').innerText = `Class ${currentUser.grade} Quiz`;
-                loadQuc function loadQuiz(subject) {
+                document.getElementById('modal-subtitle').innerText = "Student: Assessment";
+                loadQuiz(name);
+            }
+        }
+
+        async function loadQuiz(subject) {
             const qT = document.getElementById('active-q-text');
             const oG = document.getElementById('options-grid');
-            oG.innerHTML = ''; qT.innerText = "Finding question...";
+            oG.innerHTML = ''; qT.innerText = "Loading...";
             const snap = await db.collection("questions").where("subject","==",subject).where("targetGrade","==",currentUser.grade).limit(1).get();
-            if(snap.empty) { qT.innerText = "No questions uploaded yet."; return; }
+            if(snap.empty) { qT.innerText = "No questions for your class."; return; }
             const q = snap.docs[0].data();
             qT.innerText = q.question;
             ['A','B','C','D'].forEach(l => {
@@ -324,36 +280,37 @@
                     const b = document.createElement('button');
                     b.className = "quiz-option";
                     b.innerHTML = `<span>${l}. ${q.options[l]}</span><i class="fas fa-chevron-right opacity-10"></i>`;
-                    b.onclick = () => checkAns(l, q.answer);
-                    oG.appendCnc function checkAns(sel, cor) {
-            if(sel === cor) {
-                alert("🎉 Correct! +5 Coins");
-                const nc = (currentUser.coins || 0) + 5;
-                await db.collection("users").doc(auth.currentUser.uid).update({ coins: nc });
-                currentUser.coins = nc; updateDashboardUI(); closeModal();
-            } else { alert("❌ Wrong Answer. Try ync function saveQuestion() {
-            const d = {
-                subject: document.getElementById('mcq-modal').dataset.sub,
-                targetGrade: document.getElementById('target-grade').value,
-                question: document.getElementById('q-text').value,
-                answer: document.getElementById('correct-opt').value,
-                options: { A: document.getElementById('opt-a').value, B: document.getElementById('opt-b').value, C: document.getElementById('opt-c').value, D: document.getElementById('opt-d(!d.targetGrade || !d.answer) return alert("Fill all fields");
+                    b.onclick = () => { if(l === q.answer) { alert("Correct!"); updateCoins(5); } else { alert("Try again!"); } };
+                    oG.appendChild(b);
+                }
+            });
+        }
+
+        async function updateCoins(amt) {
+            const nc = (currentUser.coins || 0) + amt;
+            await db.collection("users").doc(currentUser.uid).update({ coins: nc });
+            currentUser.coins = nc; updateDashboardUI(); closeModal();
+        }
+
+        async function saveQuestion() {
+            const d = { subject: document.getElementById('mcq-modal').dataset.sub, targetGrade: document.getElementById('target-grade').value, question: document.getElementById('q-text').value, answer: document.getElementById('correct-opt').value, options: { A: document.getElementById('opt-a').value, B: document.getElementById('opt-b').value, C: document.getElementById('opt-c').value, D: document.getElementById('opt-d').value } };
+            if(!d.targetGrade || !d.answer || !d.question) return alert("Fill all fields");
             await db.collection("questions").add(d);
-            alert("Saved!"); cnction closeModal() { document.getElementById('mcq-modal').classList.add('hidden'); }
+            alert("Uploaded!"); closeModal();
+        }
+
+        function switchTab(name) {
+            ['home', 'tasks', 'rewards'].forEach(t => { document.getElementById('tab-' + t).classList.add('hidden'); document.getElementById('nav-' + t).classList.replace('tab-active', 'tab-inactive'); });
+            document.getElementById('tab-' + name).classList.remove('hidden');
+            document.getElementById('nav-' + name).classList.replace('tab-inactive', 'tab-active');
+            if(name === 'rewards') fetchLeaderboard();
+        }
+
+        function closeModal() { document.getElementById('mcq-modal').classList.add('hidden'); }
         function toggleView() { document.getElementById('login-box').classList.toggle('hidden'); document.getElementById('signup-box').classList.toggle('hidden'); }
         function updateFormFields() { document.getElementById('student-extra-fields').classList.toggle('hidden', document.getElementById('reg-role').value === 'teacher'); }
         function logout() { auth.signOut().then(() => location.reload()); }
     </script>
 </body>
 </html>
-
-
-
-        
-                
-                
-                
-                
-                
-                            
-                            
+    
