@@ -8,7 +8,6 @@ const firebaseConfig = {
     appId: "1:476444772096:web:6fd360cc0a774f94a1d5e5"
 };
 
-// Initialize Firebase
 if (!firebase.apps.length) { 
     firebase.initializeApp(firebaseConfig); 
 }
@@ -24,7 +23,6 @@ function toggleView() {
 function updateFormFields() {
     const role = document.getElementById('reg-role').value;
     const extraFields = document.getElementById('student-extra-fields');
-    // Teachers do not see Parentage, Residence, or Grade
     if (role === 'teacher') {
         extraFields.classList.add('hidden');
     } else {
@@ -32,9 +30,8 @@ function updateFormFields() {
     }
 }
 
-// 3. UPDATED LOGIN LOGIC (Fixes "Badly Formatted" Error)
+// 3. LOGIN LOGIC
 async function handleLogin() {
-    // Trim spaces and force lowercase to prevent Android formatting errors
     const email = document.getElementById('login-email').value.trim().toLowerCase();
     const pass = document.getElementById('login-pass').value;
     const loginBtn = document.querySelector('button[onclick="handleLogin()"]');
@@ -49,25 +46,19 @@ async function handleLogin() {
         const doc = await db.collection("users").doc(cred.user.uid).get();
         const user = doc.data();
 
-        if (!user) throw new Error("User profile not found in database.");
+        if (!user) throw new Error("User profile not found.");
 
-        // Admin Routing for GitHub Pages
         if (user.role === 'admin') {
-            let currentPath = window.location.pathname;
-            let directory = currentPath.substring(0, currentPath.lastIndexOf('/'));
-            window.location.href = directory + "/admin.html";
+            window.location.href = "admin.html";
             return;
         }
 
-        // Approval Check
         if (!user.approved) {
             alert("Access Denied: Your account is awaiting HOI approval.");
             auth.signOut();
-            location.reload();
             return;
         }
 
-        // Show Teacher/Student Dashboard
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('app-dashboard').classList.remove('hidden');
         setupUserDashboard(user);
@@ -80,12 +71,11 @@ async function handleLogin() {
     }
 }
 
-// 4. UPDATED SIGNUP LOGIC (Prevents Role Confusion)
+// 4. SIGNUP LOGIC
 async function handleSignup() {
     const role = document.getElementById('reg-role').value;
     const name = document.getElementById('reg-name').value.trim();
     const school = document.getElementById('reg-school').value.trim();
-    // Normalize email during signup
     const email = document.getElementById('reg-email').value.trim().toLowerCase();
     const pass = document.getElementById('reg-pass').value.trim();
 
@@ -93,18 +83,16 @@ async function handleSignup() {
 
     try {
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        
         let userData = {
             fullName: name,
             role: role,
             school: school,
             email: email,
-            approved: false, // Security Gate
+            approved: false,
             uid: cred.user.uid,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // Add extra data only if registering as student
         if (role === 'student') {
             userData.parentage = document.getElementById('reg-parent').value.trim();
             userData.residence = document.getElementById('reg-residence').value.trim();
@@ -113,7 +101,7 @@ async function handleSignup() {
         }
 
         await db.collection("users").doc(cred.user.uid).set(userData);
-        alert("Registration Successful! Please wait for HOI/Admin approval.");
+        alert("Registration Successful! Please wait for HOI approval.");
         auth.signOut();
         location.reload();
     } catch (e) {
@@ -121,29 +109,49 @@ async function handleSignup() {
     }
 }
 
-// 5. SUBJECT DASHBOARD GENERATOR
+// 5. UPDATED DASHBOARD GENERATOR
 function setupUserDashboard(user) {
     document.getElementById('user-name').innerText = user.fullName;
-    document.getElementById('user-subtext').innerText = `${user.grade || user.role.toUpperCase()} | ${user.school}`;
+    document.getElementById('user-subtext').innerText = `${user.grade || 'Staff/Teacher'} | ${user.school}`;
+    document.getElementById('user-coins').innerText = user.coins || 0;
     
     const grid = document.getElementById('role-view');
     grid.innerHTML = ''; 
 
-    // Define subject logic
+    // Logic to decide subjects
     let subjects = ["English", "Mathematics", "Urdu", "Kashmiri"];
-    if (user.grade === 'Primary') subjects.push("EVS");
-    if (user.grade === 'Middle') subjects.push("Science", "Social Studies");
+
+    // If teacher, show all. If student, show based on grade.
+    if (user.role === 'teacher') {
+        subjects = ["English", "Mathematics", "Urdu", "Kashmiri", "EVS", "Science", "Social Studies"];
+    } else if (user.grade === 'Primary') {
+        subjects.push("EVS");
+    } else if (user.grade === 'Middle') {
+        subjects.push("EVS", "Science", "Social Studies");
+    }
 
     subjects.forEach(sub => {
-        grid.innerHTML += `
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all">
-                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl mb-3">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <span class="font-bold text-slate-700 text-sm leading-tight">${sub}</span>
+        // Create element manually to ensure onclick works perfectly on mobile
+        const card = document.createElement('div');
+        card.className = "bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all";
+        
+        // This makes the tab functional!
+        card.onclick = () => openSubject(sub);
+
+        card.innerHTML = `
+            <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl mb-3">
+                <i class="fas fa-book-open"></i>
             </div>
+            <span class="font-bold text-slate-700 text-sm leading-tight">${sub}</span>
         `;
+        grid.appendChild(card);
     });
+}
+
+// 6. ACTION FUNCTION FOR TABS
+function openSubject(name) {
+    alert("Opening " + name + "... Prepare for your Winter Assignment!");
+    // Later we will replace this alert with a Question Modal
 }
 
 function logout() { 
