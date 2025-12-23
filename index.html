@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .app-gradient { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
-        .input-style { @apply w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500 transition-all; }
         body { -webkit-tap-highlight-color: transparent; }
+        .input-style { @apply w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500 transition-all; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
@@ -30,50 +30,44 @@
             </div>
 
             <div id="login-box" class="space-y-4">
-    <form onsubmit="event.preventDefault(); handleLogin();" class="space-y-4">
-        <input type="email" id="login-email" placeholder="Email" 
-               class="w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500"
-               autocomplete="email" autocapitalize="none" spellcheck="false" required>
-        
-        <input type="password" id="login-pass" placeholder="Password" 
-               class="w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500" required>
-        
-        <button type="submit" 
-                class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
-            Sign In
-        </button>
-    </form>
-    <p class="text-center text-sm text-slate-500">
-        New user? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Register</span>
-    </p>
-</div>
+                <div class="space-y-4">
+                    <input type="email" id="login-email" placeholder="Email" 
+                           class="input-style" autocomplete="email" autocapitalize="none" spellcheck="false">
+                    <input type="password" id="login-pass" placeholder="Password" class="input-style">
+                    <button type="button" onclick="handleLogin()" 
+                            class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
+                        Sign In
+                    </button>
+                </div>
+                <p class="text-center text-sm text-slate-500">
+                    New user? <span onclick="toggleView()" class="text-indigo-600 font-bold cursor-pointer underline">Register</span>
+                </p>
+            </div>
 
             <div id="signup-box" class="hidden space-y-4">
-                <select id="reg-role" onchange="updateFormFields()" class="w-full p-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700">
+                <select id="reg-role" onchange="updateFormFields()" class="input-style font-bold text-slate-700">
                     <option value="student">Student</option>
                     <option value="teacher">Teacher</option>
                 </select>
 
-                <input type="text" id="reg-name" placeholder="Full Name" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                <input type="text" id="reg-school" placeholder="School Name" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
+                <input type="text" id="reg-name" placeholder="Full Name" class="input-style">
+                <input type="text" id="reg-school" placeholder="School Name" class="input-style">
                 
                 <div id="student-extra-fields" class="space-y-4">
-                    <input type="text" id="reg-parent" placeholder="Parentage" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                    <input type="text" id="reg-residence" placeholder="Residence" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                    <select id="reg-grade" class="w-full p-4 rounded-2xl bg-slate-100 border-none font-bold text-slate-700">
+                    <input type="text" id="reg-parent" placeholder="Parentage" class="input-style">
+                    <input type="text" id="reg-residence" placeholder="Residence" class="input-style">
+                    <select id="reg-grade" class="input-style font-bold text-slate-700">
                         <option value="Foundational">Foundational (Nur-2nd)</option>
                         <option value="Primary">Primary (3rd-5th)</option>
                         <option value="Middle">Middle (6th-8th)</option>
                     </select>
                 </div>
 
-                <input type="email" id="reg-email" placeholder="Email" class="w-full p-4 rounded-2xl bg-slate-100 border-none" autocapitalize="none">
-                <input type="password" id="reg-pass" placeholder="Set Password" class="w-full p-4 rounded-2xl bg-slate-100 border-none">
-                <button type="button" onclick="handleLogin()" 
-        class="w-full app-gradient text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
-    Sign In
-                </button>
-                <button type="button" onclick="handleSignup()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
+                <input type="email" id="reg-email" placeholder="Email" class="input-style" autocapitalize="none">
+                <input type="password" id="reg-pass" placeholder="Set Password" class="input-style">
+                
+                <button type="button" onclick="handleSignup()" 
+                        class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
                     Create Account
                 </button>
                 <p class="text-center text-sm text-slate-500">
@@ -91,7 +85,7 @@
         <div class="app-gradient p-8 pb-20 rounded-b-[3rem] text-white shadow-xl">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 id="user-name" class="text-2xl font-black">Welcome Back!</h2>
+                    <h2 id="user-name" class="text-2xl font-black">Welcome!</h2>
                     <p id="user-subtext" class="text-indigo-100 text-xs font-bold uppercase tracking-tighter"></p>
                 </div>
                 <button onclick="logout()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
@@ -117,8 +111,7 @@
                 <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest">Your Subjects</h3>
                 <span class="text-[10px] text-indigo-600 font-bold">WINTER 2024-25</span>
             </div>
-            <div id="role-view" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                </div>
+            <div id="role-view" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
 
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-8 py-4 flex justify-between items-center shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
@@ -130,5 +123,4 @@
 
     <script src="script.js"></script>
 </body>
-</html>
-
+</html>                    
